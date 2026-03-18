@@ -21,7 +21,7 @@ const fadeInUp = {
 
 export default function AllProducts() {
   return (
-    <section id="products" className="w-full bg-[#FBF6F6] py-24 px-6 md:px-20">
+    <section id="products" className="w-full bg-[#f7f6f1] py-24 px-6 md:px-20">
       <div className="max-w-6xl mx-auto">
 
         <motion.div
@@ -32,8 +32,8 @@ export default function AllProducts() {
           variants={fadeInUp}
           className="text-center mb-16"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-black/40 mb-4 font-medium">Collection</p>
-          <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tight text-black/90">
+          <p className="text-[#b89b5e] text-xs uppercase tracking-[0.3em] mb-4 font-bold">Collection</p>
+          <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tight text-[#2b2622]">
             All Products
           </h2>
         </motion.div>
@@ -47,13 +47,15 @@ export default function AllProducts() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
               variants={fadeInUp}
-              className="product-card bg-white rounded-xl p-4 border border-black/[0.04] flex flex-col cursor-pointer group"
+              className="product-card flex flex-col cursor-pointer group"
             >
-              <div className="product-image w-full aspect-square bg-black/[0.03] rounded-lg mb-4 overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-br from-transparent to-black/[0.03]"></div>
+              <div className="product-image w-full aspect-square bg-[#2b2622]/[0.03] rounded-t-lg mb-4 overflow-hidden relative">
+                <div className="absolute inset-0 bg-[#b89b5e]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1">{product.name}</h3>
-              <span className="text-gray-500 font-medium text-sm mt-auto">{product.price}</span>
+              <div className="p-2 flex flex-col flex-grow">
+                <h3 className="text-sm font-bold uppercase tracking-wide text-[#2b2622] mb-1">{product.name}</h3>
+                <span className="text-[#6f6a65] font-semibold text-xs mt-auto">{product.price}</span>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -66,7 +68,7 @@ export default function AllProducts() {
           variants={fadeInUp}
           className="text-center mt-16"
         >
-          <button className="px-10 py-3.5 border border-black text-black font-semibold uppercase tracking-wider text-sm hover:bg-black hover:text-white transition-all duration-300">
+          <button className="px-12 py-3.5 bg-[#2b2622] text-white font-bold uppercase tracking-widest text-xs hover:bg-[#b89b5e] transition-all transform hover:-translate-y-1 shadow-md">
             View All
           </button>
         </motion.div>

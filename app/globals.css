@@ -2,10 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-primary: #f7f6f1;
+  --bg-card: #e8e1d9;
+  --text-heading: #2b2622;
+  --text-body: #6f6a65;
+  --accent: #b89b5e;
+}
+
 @layer base {
   body {
-    background-color: #FBF6F6;
-    color: #374151;
+    background-color: var(--bg-primary);
+    color: var(--text-body);
     overflow-x: hidden;
     font-family: inherit;
     -webkit-font-smoothing: antialiased;
@@ -18,11 +26,13 @@
 
   /* Typography refinement */
   h1, h2, h3, h4, h5, h6 {
+    color: var(--text-heading);
     letter-spacing: -0.02em;
     line-height: 1.1;
   }
 
   p {
+    color: var(--text-body);
     line-height: 1.7;
   }
 }
@@ -35,27 +45,62 @@
 
 /* === GLOBAL BUTTON INTERACTIONS === */
 @layer components {
-  button, a.btn {
-    transition: transform 300ms ease, background-color 300ms ease, box-shadow 300ms ease;
+  /* Base Reset for all buttons */
+  button {
+    transition: transform 300ms ease, background-color 300ms ease, box-shadow 300ms ease, color 300ms ease;
   }
 
-  button:hover, a.btn:hover {
-    transform: scale(1.05);
+  /* Primary Action Buttons */
+  .btn-primary {
+    background-color: var(--text-heading);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
-  button:active, a.btn:active {
-    transform: scale(0.97);
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    background-color: var(--accent);
+    box-shadow: 0 5px 15px rgba(184, 155, 94, 0.3);
+  }
+
+  .btn-primary:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  /* Icon-only Buttons */
+  .btn-icon {
+    background-color: transparent !important;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: none !important;
+  }
+
+  .btn-icon:hover {
+    transform: scale(1.1);
+    color: var(--accent) !important;
   }
 }
 
 /* === PRODUCT CARD HOVER EFFECTS === */
 .product-card {
+  background-color: var(--bg-card);
+  border-radius: 16px;
   transition: transform 350ms ease-out, box-shadow 350ms ease-out;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
 }
 
 .product-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent);
 }
 
 .product-card .product-image {

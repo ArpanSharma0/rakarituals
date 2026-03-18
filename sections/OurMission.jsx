@@ -10,7 +10,7 @@ const fadeInUp = {
 
 export default function OurMission() {
   return (
-    <section id="about" className="w-full bg-[#F3EEEE] py-28 px-6 md:px-20">
+    <section id="about" className="w-full bg-[#f7f6f1] py-28 px-6 md:px-20">
       <div className="max-w-3xl mx-auto text-center">
         <motion.div
           initial="hidden"
@@ -19,11 +19,11 @@ export default function OurMission() {
           transition={{ duration: 0.7 }}
           variants={fadeInUp}
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-black/40 mb-5 font-medium">Our Mission</p>
-          <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tight mb-10 text-black/90">
+          <p className="text-[#b89b5e] text-xs uppercase tracking-[0.3em] mb-5 font-bold">Our Mission</p>
+          <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tight mb-10 text-[#2b2622]">
             Rooted in Stillness
           </h2>
-          <p className="text-gray-600 text-base md:text-lg leading-[1.8] max-w-2xl mx-auto">
+          <p className="text-[#6f6a65] text-base md:text-lg leading-[1.8] max-w-2xl mx-auto">
             At Rakarituals, we believe that true growth begins in moments of calm. 
             Our products are crafted to support meditation, mindfulness, and the 
             sacred rituals that bring meaning to everyday life. Each item is chosen 

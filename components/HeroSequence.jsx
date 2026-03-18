@@ -33,7 +33,7 @@ export default function HeroSequence() {
   const canvasOpacity = useTransform(scrollYProgress, [0.75, 0.9], [1, 0]);
 
   // Transition Background
-  const backgroundColor = useTransform(scrollYProgress, [0.75, 0.9], ["#000000", "#FBF6F6"]);
+  const backgroundColor = useTransform(scrollYProgress, [0.75, 0.9], ["#000000", "#f7f6f1"]);
 
   // Morph main text (Center -> Top Left Navbar Logo)
   const moveProgress = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
@@ -192,7 +192,7 @@ export default function HeroSequence() {
             className="hero-text pointer-events-auto drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)] mt-[10vh]"
           >
             <motion.div style={{ opacity: subOpacity }}>
-              <p className="text-lg md:text-xl font-medium tracking-widest uppercase mb-8 border border-primary-background px-6 py-2 inline-block text-primary-background bg-black/10 backdrop-blur-sm">
+              <p className="text-lg md:text-xl font-medium tracking-widest uppercase mb-8 border border-[#b89b5e] px-6 py-2 inline-block text-[#b89b5e] bg-black/10 backdrop-blur-sm">
                 Meditate and Grow
               </p>
               <br />
@@ -223,11 +223,11 @@ export default function HeroSequence() {
         >
             <motion.div 
               style={{ opacity: bsOpacity }}
-              whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.4)" }}
+              whileHover={{ backgroundColor: "rgba(232, 225, 217, 1)" }}
               transition={{ duration: 0.3 }}
-              className="w-[75vw] max-w-[960px] pointer-events-auto bg-white/10 backdrop-blur-xl rounded-3xl p-5 md:p-8 shadow-[0_8px_40px_0_rgba(0,0,0,0.2)] border border-white/20"
+              className="w-[75vw] max-w-[960px] pointer-events-auto bg-[#e8e1d9] backdrop-blur-xl rounded-[16px] p-5 md:p-8 shadow-[0_8px_25px_rgba(0,0,0,0.05)] border border-white/20"
             >
-              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight mb-5 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight mb-5 text-[#2b2622]">
                 Best Sellers
               </h2>
 
@@ -252,15 +252,15 @@ export default function HeroSequence() {
                   ].map((product) => (
                     <div 
                       key={product.id} 
-                      className="flex-shrink-0 w-[200px] md:w-[220px] bg-white/90 backdrop-blur-sm rounded-2xl p-4 border border-black/[0.06] shadow-md flex flex-col cursor-pointer transition-all duration-350 ease-out hover:-translate-y-2 hover:shadow-lg"
+                      className="flex-shrink-0 w-[200px] md:w-[220px] bg-[#f7f6f1] rounded-2xl p-4 border border-black/[0.03] shadow-sm flex flex-col cursor-pointer transition-all duration-350 ease-out hover:-translate-y-2 hover:shadow-md"
                     >
                       <div className="w-full h-36 bg-black/[0.04] rounded-xl mb-3 overflow-hidden">
                         <div className="w-full h-full transition-transform duration-400 hover:scale-105"></div>
                       </div>
-                      <h3 className="text-sm font-semibold mb-0.5 uppercase tracking-wide text-gray-800">{product.name}</h3>
-                      <p className="text-gray-500 text-xs mb-2">{product.desc}</p>
+                      <h3 className="text-sm font-semibold mb-0.5 uppercase tracking-wide text-[#2b2622]">{product.name}</h3>
+                      <p className="text-[#6f6a65] text-xs mb-2">{product.desc}</p>
                       <div className="flex justify-between items-center mt-auto">
-                        <span className="font-bold text-gray-800 text-sm">{product.price}</span>
+                        <span className="font-bold text-[#2b2622] text-sm">{product.price}</span>
                         <button className="px-2.5 py-1 bg-black text-white text-[10px] uppercase tracking-widest rounded-md hover:bg-neutral-800 transition-colors duration-300">
                           Add
                         </button>
