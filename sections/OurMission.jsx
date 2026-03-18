@@ -10,7 +10,7 @@ const fadeInUp = {
 
 export default function OurMission() {
   return (
-    <section id="about" className="w-full bg-[#f7f6f1] py-28 px-6 md:px-20">
+    <section id="about" className="w-full bg-[#f7f6f1] py-28 px-6 md:px-20 section-layer">
       <div className="max-w-3xl mx-auto text-center">
         <motion.div
           initial="hidden"

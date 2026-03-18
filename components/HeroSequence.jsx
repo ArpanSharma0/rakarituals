@@ -49,6 +49,9 @@ export default function HeroSequence() {
   const bsOpacity = useTransform(scrollYProgress, [0.4, 0.55], [0, 1]);
   // Fade out best sellers before canvas fades out
   const bsFadeOut = useTransform(scrollYProgress, [0.7, 0.8], [1, 0]);
+  
+  // Micro Parallax for Background
+  const bgParallax = useTransform(scrollYProgress, [0, 1], [0, -60]);
 
   useEffect(() => {
     // 1. Preload images (No React State, No re-renders)
@@ -175,10 +178,10 @@ export default function HeroSequence() {
       <div className="sticky top-0 w-full h-screen overflow-hidden">
         
         {/* CANVAS BACKGROUND */}
-        <motion.div style={{ opacity: canvasOpacity }} className="absolute inset-0 w-full h-full z-0">
+        <motion.div style={{ opacity: canvasOpacity, y: bgParallax }} className="absolute inset-0 w-full h-full z-0">
           <canvas 
             ref={canvasRef} 
-            className="w-full h-full block"
+            className="w-full h-full block scale-105"
           />
         </motion.div>
 
@@ -225,7 +228,7 @@ export default function HeroSequence() {
               style={{ opacity: bsOpacity }}
               whileHover={{ backgroundColor: "rgba(232, 225, 217, 1)" }}
               transition={{ duration: 0.3 }}
-              className="w-[75vw] max-w-[960px] pointer-events-auto bg-[#e8e1d9] backdrop-blur-xl rounded-[16px] p-5 md:p-8 shadow-[0_8px_25px_rgba(0,0,0,0.05)] border border-white/20"
+              className="section-layer w-[75vw] max-w-[960px] pointer-events-auto bg-[#e8e1d9] backdrop-blur-3xl rounded-[16px] p-5 md:p-8 shadow-[0_30px_60px_rgba(0,0,0,0.12)] border border-white/30"
             >
               <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight mb-5 text-[#2b2622]">
                 Best Sellers

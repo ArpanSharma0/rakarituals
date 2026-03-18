@@ -28,7 +28,7 @@ const fadeInUp = {
 
 export default function Testimonials() {
   return (
-    <section className="w-full bg-[#f7f6f1] py-24 px-6 md:px-20">
+    <section className="w-full bg-[#f7f6f1] py-24 px-6 md:px-20 section-layer">
       <div className="max-w-6xl mx-auto">
 
         <motion.div
@@ -54,7 +54,7 @@ export default function Testimonials() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               variants={fadeInUp}
-              className="bg-[#e8e1d9] rounded-2xl p-8 shadow-[0_8px_25px_rgba(0,0,0,0.05)] border border-white/10 hover:shadow-lg transition-all duration-300"
+              className="product-card p-8 border border-white/10"
             >
               <p className="text-[#6f6a65] text-sm md:text-base leading-relaxed mb-8 italic">
                 &ldquo;{testimonial.text}&rdquo;

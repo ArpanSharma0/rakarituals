@@ -10,7 +10,7 @@ const fadeInUp = {
 
 export default function FeaturedProducts() {
   return (
-    <section id="products" className="py-24 px-8 md:px-16 bg-[#f7f6f1]">
+    <section id="products" className="py-24 px-8 md:px-16 bg-[#f7f6f1] section-layer">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
         
         {/* Left Content */}
@@ -24,15 +24,17 @@ export default function FeaturedProducts() {
           <p className="text-lg text-[#6f6a65] mb-8 max-w-lg">
             Each piece in our collection is handcrafted using traditional techniques passed down through generations. Designed to ground your energy and elevate your daily rituals.
           </p>
-          <button className="px-10 py-4 bg-[#2b2622] text-white font-bold uppercase tracking-widest text-sm hover:bg-[#b89b5e] transition-all transform hover:-translate-y-1 shadow-md">
+          <button className="btn-primary px-10 py-4 shadow-[0_10px_20px_rgba(43,38,34,0.15)]">
             View Collection
           </button>
         </motion.div>
 
         {/* Right Image */}
-        <motion.div className="relative aspect-[4/5] bg-neutral-200 overflow-hidden shadow-2xl rounded-2xl">
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#e8e1d9] to-transparent mix-blend-multiply opacity-50"></div>
-          <div className="absolute inset-0 flex items-center justify-center text-[#2b2622]/40 font-medium">Featured Product Image</div>
+        <motion.div className="product-image-container relative aspect-[4/5] bg-neutral-200 shadow-2xl rounded-2xl">
+          <div className="product-image absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#e8e1d9] to-transparent mix-blend-multiply opacity-50"></div>
+            <div className="absolute inset-0 flex items-center justify-center text-[#2b2622]/40 font-medium">Featured Product Image</div>
+          </div>
         </motion.div>
       </div>
     </section>
