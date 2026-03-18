@@ -221,9 +221,12 @@ export default function HeroSequence() {
           }}
           className="absolute inset-0 z-30 flex items-end pb-12 pointer-events-none"
         >
-          <motion.div style={{ opacity: bsOpacity }} className="w-[75vw] max-w-[960px] pointer-events-auto">
-            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-5 md:p-8 shadow-[0_8px_40px_0_rgba(0,0,0,0.2)] border border-white/20">
-              
+            <motion.div 
+              style={{ opacity: bsOpacity }}
+              whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.4)" }}
+              transition={{ duration: 0.3 }}
+              className="w-[75vw] max-w-[960px] pointer-events-auto bg-white/10 backdrop-blur-xl rounded-3xl p-5 md:p-8 shadow-[0_8px_40px_0_rgba(0,0,0,0.2)] border border-white/20"
+            >
               <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight mb-5 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
                 Best Sellers
               </h2>
@@ -267,11 +270,10 @@ export default function HeroSequence() {
                 </div>
               </div>
 
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
 
-      </div>
-    </motion.section>
-  );
+        </div>
+      </motion.section>
+    );
 }
