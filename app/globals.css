@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #FBF6F6;
+    color: #374151;
+    overflow-x: hidden;
+    font-family: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Typography refinement */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  p {
+    line-height: 1.7;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* === GLOBAL BUTTON INTERACTIONS === */
+@layer components {
+  button, a.btn {
+    transition: transform 300ms ease, background-color 300ms ease, box-shadow 300ms ease;
+  }
+
+  button:hover, a.btn:hover {
+    transform: scale(1.05);
+  }
+
+  button:active, a.btn:active {
+    transform: scale(0.97);
+  }
+}
+
+/* === PRODUCT CARD HOVER EFFECTS === */
+.product-card {
+  transition: transform 350ms ease-out, box-shadow 350ms ease-out;
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.product-card .product-image {
+  transition: transform 400ms ease-out;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+/* === SCROLLBAR STYLING === */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
