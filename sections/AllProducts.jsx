@@ -1,18 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-
-const products = [
-  { id: 1, name: "Sacred Incense Bundle", price: "$45.00" },
-  { id: 2, name: "Meditation Stone Set", price: "$38.00" },
-  { id: 3, name: "Ritual Candle Trio", price: "$52.00" },
-  { id: 4, name: "Crystal Singing Bowl", price: "$89.00" },
-  { id: 5, name: "Herbal Smudge Kit", price: "$34.00" },
-  { id: 6, name: "Zen Garden Set", price: "$67.00" },
-  { id: 7, name: "Chakra Bracelet", price: "$28.00" },
-  { id: 8, name: "Lotus Diffuser", price: "$74.00" },
-];
+import { fetchProducts } from "@/utils/api";
+import ProductCard from "@/components/ProductCard";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -20,6 +11,39 @@ const fadeInUp = {
 };
 
 export default function AllProducts() {
+  const [products, setProducts] = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const getProducts = async () => {
+      const data = await fetchProducts();
+      if (data && Array.isArray(data.products)) {
+        setProducts(data.products);
+      } else if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        setError(true);
+      }
+    };
+    getProducts();
+  }, []);
+
+  if (error) {
+    return (
+      <section className="w-full bg-[#f7f6f1] py-24 text-center">
+        <p className="text-[#2b2622] font-semibold">Failed to load products</p>
+      </section>
+    );
+  }
+
+  if (!products) {
+    return (
+      <section className="w-full bg-[#f7f6f1] py-24 text-center">
+        <p className="text-[#2b2622] font-semibold animate-pulse">Loading...</p>
+      </section>
+    );
+  }
+
   return (
     <section id="products" className="w-full bg-[#f7f6f1] py-24 px-6 md:px-20 section-layer">
       <div className="max-w-6xl mx-auto">
@@ -41,24 +65,14 @@ export default function AllProducts() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
           {products.map((product, index) => (
             <motion.div
-              key={product.id}
+              key={product.id || index}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
               variants={fadeInUp}
-              className="product-card flex flex-col cursor-pointer group"
             >
-              <div className="product-image-container w-full aspect-square bg-[#2b2622]/[0.03] rounded-t-lg mb-4">
-                <div className="product-image w-full h-full relative">
-                  <div className="absolute inset-0 bg-[#b89b5e]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="absolute inset-0 flex items-center justify-center text-[#2b2622]/10 font-bold text-xs uppercase tracking-widest">Ritual Object</div>
-                </div>
-              </div>
-              <div className="p-4 pt-1 flex flex-col flex-grow">
-                <h3 className="text-sm font-bold uppercase tracking-wide text-[#2b2622] mb-1">{product.name}</h3>
-                <span className="text-[#6f6a65] font-semibold text-xs mt-auto">{product.price}</span>
-              </div>
+              <ProductCard product={product} />
             </motion.div>
           ))}
         </div>

@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { fetchBestSellers } from "@/utils/api";
+import ProductCard from "@/components/ProductCard";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -16,6 +18,23 @@ export default function HeroSequence() {
   const imagesRef = useRef([]);
   const scrollTrackRef = useRef(null);
   const frameCount = 160;
+
+  const [bestSellers, setBestSellers] = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const getBestSellers = async () => {
+      const data = await fetchBestSellers();
+      if (data && Array.isArray(data.products)) {
+        setBestSellers(data.products.slice(0, 4));
+      } else if (Array.isArray(data)) {
+        setBestSellers(data.slice(0, 4));
+      } else {
+        setError(true);
+      }
+    };
+    getBestSellers();
+  }, []);
 
   // Framer Motion Scroll Tracking
   const { scrollYProgress } = useScroll({
@@ -44,11 +63,12 @@ export default function HeroSequence() {
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.3]);
   const heroOpacity = useTransform(scrollYProgress, [0.18, 0.22], [1, 0]);
 
-  // === BEST SELLERS: Slide in from LEFT to CENTER (pure horizontal) ===
-  const bsX = useTransform(scrollYProgress, [0.4, 0.55], [-110, 0]); // percentage-based slide
-  const bsOpacity = useTransform(scrollYProgress, [0.4, 0.55], [0, 1]);
-  // Fade out best sellers before canvas fades out
-  const bsFadeOut = useTransform(scrollYProgress, [0.7, 0.8], [1, 0]);
+  // === BEST SELLERS: Parallax Slide (smooth on scroll) ===
+  const bsX = useTransform(scrollYProgress, [0.4, 0.55], [-150, 0]); // Container slide
+  const bsTitleX = useTransform(scrollYProgress, [0.4, 0.55], ["-40%", "0%"]); // Title parallax
+  const bsCardsX = useTransform(scrollYProgress, [0.4, 0.55], ["-20%", "0%"]); // Cards parallax
+  const bsOpacity = useTransform(scrollYProgress, [0.4, 0.42], [0, 1]); // Snap in quickly at start
+  const bsFadeOut = useTransform(scrollYProgress, [0.75, 0.85], [1, 0]); // Smooth slide out
   
   // Micro Parallax for Background
   const bgParallax = useTransform(scrollYProgress, [0, 1], [0, -60]);
@@ -117,17 +137,23 @@ export default function HeroSequence() {
       ctx.fillStyle = "#FBF6F6";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Cover logic (preserve aspect ratio)
-      const rx = canvas.width / img.naturalWidth;
-      const ry = canvas.height / img.naturalHeight;
-      const ratio = Math.max(rx, ry); 
-      
-      const drawWidth = img.naturalWidth * ratio;
-      const drawHeight = img.naturalHeight * ratio;
-      const x = (canvas.width - drawWidth) / 2;
-      const y = (canvas.height - drawHeight) / 2;
-      
-      ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, x, y, drawWidth, drawHeight);
+      const canvasRatio = canvas.width / canvas.height;
+      const imgRatio = img.width / img.height;
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      if (imgRatio > canvasRatio) {
+          drawHeight = canvas.height;
+          drawWidth = canvas.height * imgRatio;
+          offsetX = (canvas.width - drawWidth) / 2;
+          offsetY = 0;
+      } else {
+          drawWidth = canvas.width;
+          drawHeight = canvas.width / imgRatio;
+          offsetX = 0;
+          offsetY = (canvas.height - drawHeight) / 2;
+      }
+
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
       renderRequested = false;
     };
 
@@ -214,69 +240,43 @@ export default function HeroSequence() {
           RAKARITUALS
         </motion.h1>
 
-        {/* === BEST SELLERS OVERLAY (Left-aligned, Glassmorphism, slides in from left) === */}
         <motion.div
           style={{ 
             x: useTransform(bsX, v => `${v}%`),
-            opacity: bsFadeOut,
-            marginLeft: "80px",
-            marginRight: "80px"
+            opacity: bsFadeOut
           }}
-          className="absolute inset-0 z-30 flex items-end pb-12 pointer-events-none"
+          className="absolute inset-0 z-30 flex items-end justify-center pb-12 pointer-events-none px-6 md:px-20"
         >
             <motion.div 
               style={{ opacity: bsOpacity }}
-              whileHover={{ backgroundColor: "rgba(232, 225, 217, 1)" }}
-              transition={{ duration: 0.3 }}
-              className="section-layer w-[75vw] max-w-[960px] pointer-events-auto bg-[#e8e1d9] backdrop-blur-3xl rounded-[16px] p-5 md:p-8 shadow-[0_30px_60px_rgba(0,0,0,0.12)] border border-white/30"
+              className="section-layer w-full max-w-[1020px] pointer-events-auto bg-[#e8e1d9] rounded-[24px] p-8 md:p-10 shadow-[0_30px_100px_rgba(0,0,0,0.1)] border border-white/20 overflow-hidden"
             >
-              <h2 className="text-xl md:text-3xl font-bold uppercase tracking-tight mb-5 text-[#2b2622]">
-                Best Sellers
-              </h2>
+              <motion.div style={{ x: bsTitleX }} className="mb-8">
+                <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-[#1a1a1a]">
+                  BEST SELLERS
+                </h2>
+              </motion.div>
 
-              {/* Horizontally scrollable product cards — scroll hijacked when cursor is here */}
-              <div 
+              <motion.div 
+                style={{ x: bsCardsX }}
                 ref={scrollTrackRef}
-                className="overflow-x-auto pb-3 scroll-smooth"
-                style={{ 
-                  WebkitOverflowScrolling: "touch",
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "rgba(255,255,255,0.3) transparent"
-                }}
+                className="flex gap-6 overflow-x-auto pb-4 hide-scrollbar scroll-smooth"
               >
-                <div className="flex gap-4" style={{ width: "max-content" }}>
-                  {[
-                    { id: 1, name: "Sacred Incense Set", price: "$45.00", desc: "Purify your space" },
-                    { id: 2, name: "Meditation Stones", price: "$38.00", desc: "Ground your energy" },
-                    { id: 3, name: "Ritual Candle Trio", price: "$52.00", desc: "Illuminate your path" },
-                    { id: 4, name: "Crystal Bowl", price: "$89.00", desc: "Harmonize mind & body" },
-                    { id: 5, name: "Herbal Smudge Kit", price: "$34.00", desc: "Renew your aura" },
-                    { id: 6, name: "Zen Garden Set", price: "$67.00", desc: "Find inner peace" },
-                  ].map((product) => (
-                    <div 
-                      key={product.id} 
-                      className="flex-shrink-0 w-[200px] md:w-[220px] bg-[#f7f6f1] rounded-2xl p-4 border border-black/[0.03] shadow-sm flex flex-col cursor-pointer transition-all duration-350 ease-out hover:-translate-y-2 hover:shadow-md"
-                    >
-                      <div className="w-full h-36 bg-black/[0.04] rounded-xl mb-3 overflow-hidden">
-                        <div className="w-full h-full transition-transform duration-400 hover:scale-105"></div>
-                      </div>
-                      <h3 className="text-sm font-semibold mb-0.5 uppercase tracking-wide text-[#2b2622]">{product.name}</h3>
-                      <p className="text-[#6f6a65] text-xs mb-2">{product.desc}</p>
-                      <div className="flex justify-between items-center mt-auto">
-                        <span className="font-bold text-[#2b2622] text-sm">{product.price}</span>
-                        <button className="px-2.5 py-1 bg-black text-white text-[10px] uppercase tracking-widest rounded-md hover:bg-neutral-800 transition-colors duration-300">
-                          Add
-                        </button>
-                      </div>
+                {error ? (
+                  <p className="text-[#2b2622] font-semibold py-10">Failed to load best sellers</p>
+                ) : !bestSellers ? (
+                  <p className="text-[#2b2622] font-semibold animate-pulse py-10">Loading...</p>
+                ) : (
+                  bestSellers.map((product, index) => (
+                    <div key={product._id || product.id || `best-seller-${index}`} className="flex-shrink-0 w-[240px] md:w-[260px]">
+                      <ProductCard product={product} />
                     </div>
-                  ))}
-                </div>
-              </div>
-
+                  ))
+                )}
+              </motion.div>
             </motion.div>
           </motion.div>
-
-        </div>
-      </motion.section>
-    );
+      </div>
+    </motion.section>
+  );
 }

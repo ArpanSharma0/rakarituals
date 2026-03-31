@@ -30,11 +30,13 @@ export default function FeaturedProducts() {
         </motion.div>
 
         {/* Right Image */}
-        <motion.div className="product-image-container relative aspect-[4/5] bg-neutral-200 shadow-2xl rounded-2xl">
-          <div className="product-image absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#e8e1d9] to-transparent mix-blend-multiply opacity-50"></div>
-            <div className="absolute inset-0 flex items-center justify-center text-[#2b2622]/40 font-medium">Featured Product Image</div>
-          </div>
+        <motion.div className="product-image-container relative aspect-[4/5] bg-neutral-200 shadow-2xl rounded-2xl overflow-hidden">
+          <img 
+            src="/images/sample.jpg" 
+            alt="Artisanal Ritual Product" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#e8e1d9] to-transparent mix-blend-multiply opacity-30"></div>
         </motion.div>
       </div>
     </section>
