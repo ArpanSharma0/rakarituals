@@ -28,8 +28,8 @@ const fadeInUp = {
 
 export default function Testimonials() {
   return (
-    <section className="w-full bg-[#f7f6f1] py-24 px-6 md:px-20 section-layer">
-      <div className="max-w-6xl mx-auto">
+    <section className="ritual-section bg-[#f7f6f1] section-layer">
+      <div className="ritual-container">
 
         <motion.div
           initial="hidden"
@@ -45,7 +45,7 @@ export default function Testimonials() {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
@@ -54,7 +54,7 @@ export default function Testimonials() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               variants={fadeInUp}
-              className="product-card p-8 border border-white/10"
+              className="ritual-card p-8 border border-white/10"
             >
               <p className="text-[#6f6a65] text-sm md:text-base leading-relaxed mb-8 italic">
                 &ldquo;{testimonial.text}&rdquo;

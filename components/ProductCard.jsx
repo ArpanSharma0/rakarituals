@@ -36,17 +36,16 @@ const ProductCard = ({ product }) => {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      whileHover={{ y: -10, boxShadow: "0 25px 50px rgba(184,155,94,0.15)" }}
       transition={{ duration: 0.5 }}
       onClick={() => router.push(`/product/${product._id || product.id}`)}
-      className="product-card flex flex-col bg-white text-[#2b2622] rounded-[32px] p-6 shadow-sm border border-[#dcd4cb] transition-all duration-500 group h-full cursor-pointer overflow-hidden relative"
+      className="product-card ritual-card flex flex-col p-6 cursor-pointer"
     >
-      <div className="product-image-container aspect-square relative mb-5 overflow-hidden rounded-xl bg-[#f7f6f1]">
+      <div className="product-image-container aspect-square relative mb-5 overflow-hidden rounded-lg bg-[#f7f6f1]">
         {product.image ? (
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#2b2622]/20 font-bold text-xs uppercase tracking-widest text-center px-4">

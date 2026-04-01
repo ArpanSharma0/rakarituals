@@ -2,8 +2,8 @@ import React from "react";
 
 export default function Footer() {
   return (
-    <footer id="contact" className="w-full bg-[#2b2622] text-[#f7f6f1] py-20 px-6 md:px-20 section-layer">
-      <div className="max-w-6xl mx-auto">
+    <footer id="contact" className="w-full bg-[#2b2622] text-[#f7f6f1] py-20 px-6 section-layer">
+      <div className="ritual-container">
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           

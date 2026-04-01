@@ -37,12 +37,13 @@ export default function Navbar() {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 w-full z-50 py-5 px-8 md:px-16 flex items-center justify-between transition-all duration-500 backdrop-blur-xl ${
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 backdrop-blur-xl ${
         scrolled 
-          ? "bg-transparent shadow-[0_1px_20px_rgba(0,0,0,0.02)] border-b border-[#2b2622]/5" 
-          : "bg-transparent border-b border-white/0"
+          ? "bg-transparent shadow-[0_1px_20px_rgba(0,0,0,0.02)] border-b border-[#2b2622]/5 py-4" 
+          : "bg-transparent border-b border-white/0 py-6"
       }`}
     >
+      <div className="ritual-container flex items-center justify-between px-6">
       {/* Left: Logo */}
       <motion.div 
         style={{ opacity: navOpacity }}
@@ -116,6 +117,7 @@ export default function Navbar() {
         <button className={`btn-icon uppercase text-sm font-medium transition-colors ${scrolled ? "text-[#2b2622]" : "text-white"}`}>
           Menu
         </button>
+      </div>
       </div>
     </nav>
   );

@@ -10,8 +10,8 @@ const fadeInUp = {
 
 export default function FeaturedProducts() {
   return (
-    <section id="products" className="py-24 px-8 md:px-16 bg-[#f7f6f1] section-layer">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+    <section id="products" className="ritual-section bg-[#f7f6f1] section-layer">
+      <div className="ritual-container grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
         
         {/* Left Content */}
         <motion.div>
@@ -21,22 +21,22 @@ export default function FeaturedProducts() {
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#2b2622]">
             Artisanal Rituals for the Modern Soul
           </h2>
-          <p className="text-lg text-[#6f6a65] mb-8 max-w-lg">
+          <p className="text-lg text-[#6f6a65] mb-10 max-w-lg">
             Each piece in our collection is handcrafted using traditional techniques passed down through generations. Designed to ground your energy and elevate your daily rituals.
           </p>
-          <button className="btn-primary px-10 py-4 shadow-[0_10px_20px_rgba(43,38,34,0.15)]">
+          <button className="btn-primary px-10 py-4 shadow-premium">
             View Collection
           </button>
         </motion.div>
 
         {/* Right Image */}
-        <motion.div className="product-image-container relative aspect-[4/5] bg-neutral-200 shadow-2xl rounded-2xl overflow-hidden">
+        <motion.div className="relative aspect-[4/5] bg-neutral-200 shadow-premium rounded-xl overflow-hidden group">
           <img 
             src="/images/sample.jpg" 
             alt="Artisanal Ritual Product" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#e8e1d9] to-transparent mix-blend-multiply opacity-30"></div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#e8e1d9] to-transparent mix-blend-multiply opacity-20"></div>
         </motion.div>
       </div>
     </section>

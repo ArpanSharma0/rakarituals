@@ -45,8 +45,8 @@ export default function AllProducts() {
   }
 
   return (
-    <section id="products" className="w-full bg-[#f7f6f1] py-24 px-6 md:px-20 section-layer">
-      <div className="max-w-6xl mx-auto">
+    <section id="products" className="ritual-section bg-[#f7f6f1] section-layer">
+      <div className="ritual-container">
 
         <motion.div
           initial="hidden"
@@ -85,7 +85,7 @@ export default function AllProducts() {
           variants={fadeInUp}
           className="text-center mt-16"
         >
-          <button className="px-12 py-3.5 bg-[#2b2622] text-white font-bold uppercase tracking-widest text-xs hover:bg-[#b89b5e] transition-all transform hover:-translate-y-1 shadow-md">
+          <button className="btn-primary py-4 px-12 shadow-premium">
             View All
           </button>
         </motion.div>

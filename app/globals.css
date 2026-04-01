@@ -8,14 +8,18 @@
   --text-heading: #2b2622;
   --text-body: #6f6a65;
   --accent: #b89b5e;
+  
+  /* Premium Depth System */
+  --shadow-premium: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
 @layer base {
   body {
     background-color: var(--bg-primary);
-    color: var(--text-body);
+    color: #2b2622;
     overflow-x: hidden;
-    font-family: inherit;
+    font-family: var(--font-body), sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -24,11 +28,24 @@
     scroll-behavior: smooth;
   }
 
+  /* Structural Consistency */
+  .ritual-container {
+    @apply max-w-6xl mx-auto px-6 w-full;
+  }
+
+  .ritual-section {
+    @apply py-20;
+  }
+
   /* Typography refinement */
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading), serif;
     color: var(--text-heading);
-    letter-spacing: -0.02em;
     line-height: 1.1;
+  }
+
+  h1, h2, h3 {
+    letter-spacing: 0.5px;
   }
 
   p {
@@ -51,7 +68,12 @@ html {
 @layer components {
   /* Base Reset for all buttons */
   button {
-    transition: transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 450ms ease, box-shadow 450ms ease, color 450ms ease;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    letter-spacing: 0.08em;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
   }
 
   /* Primary Action Buttons */
@@ -131,21 +153,36 @@ html {
 }
 
 .section-layer {
-  margin-top: 40px;
   position: relative;
   z-index: 2;
   box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.02);
 }
 
-/* === PRODUCT CARD HOVER EFFECTS === */
-.product-card {
+/* === RITUAL CARD SYSTEM === */
+.ritual-card {
   background-color: var(--bg-card);
-  border-radius: 16px;
-  transition: transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 450ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 450ms ease;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.04);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: var(--shadow-premium);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   overflow: hidden;
   position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ritual-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--accent);
+}
+
+.product-card {
+  background-color: var(--bg-card);
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: var(--shadow-premium);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .product-card::after {
