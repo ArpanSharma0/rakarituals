@@ -43,8 +43,8 @@ export function CartProvider({ children }) {
     refreshCart();
   }, [user]);
 
-  const addToCart = async (productId) => {
-    await addToCartAPI(productId);
+  const addToCart = async (productId, quantity = 1) => {
+    await addToCartAPI(productId, quantity);
     await refreshCart();
   };
 

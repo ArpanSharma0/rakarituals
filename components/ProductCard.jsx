@@ -36,9 +36,10 @@ const ProductCard = ({ product }) => {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.3 }}
-      className="product-card flex flex-col bg-[#e8e1d9] text-[#2b2622] rounded-2xl p-5 shadow-sm border border-[#dcd4cb] transition-all duration-300 group h-full"
+      whileHover={{ y: -10, boxShadow: "0 25px 50px rgba(184,155,94,0.15)" }}
+      transition={{ duration: 0.5 }}
+      onClick={() => router.push(`/product/${product._id || product.id}`)}
+      className="product-card flex flex-col bg-white text-[#2b2622] rounded-[32px] p-6 shadow-sm border border-[#dcd4cb] transition-all duration-500 group h-full cursor-pointer overflow-hidden relative"
     >
       <div className="product-image-container aspect-square relative mb-5 overflow-hidden rounded-xl bg-[#f7f6f1]">
         {product.image ? (
@@ -60,7 +61,7 @@ const ProductCard = ({ product }) => {
           {product.name}
         </h3>
         <div className="flex justify-between items-center mt-auto">
-          <span className="text-[#b89b5e] font-bold text-xs tracking-widest">
+          <span className="text-xl font-bold text-[#2b2622] tracking-tighter">
             ₹{product.price}
           </span>
           <button 

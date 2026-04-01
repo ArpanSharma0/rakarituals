@@ -33,9 +33,9 @@ export default function CreateProductPage() {
     setError("");
 
     try {
-      await createProduct(formData);
-      alert("Product created successfully!");
-      router.push("/admin/products");
+      const result = await createProduct(formData);
+      // Backend returns the created product with _id
+      router.push(`/product/${result._id}`);
     } catch (err) {
       setError(err.message || "Failed to create product");
       setLoading(false);

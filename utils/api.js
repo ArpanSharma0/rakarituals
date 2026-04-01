@@ -84,10 +84,10 @@ export const getCart = async () => {
   return apiFetch("/api/cart");
 };
 
-export const addToCart = async (productId) => {
+export const addToCart = async (productId, quantity = 1) => {
   return apiFetch("/api/cart", {
     method: "POST",
-    body: JSON.stringify({ productId, quantity: 1 }),
+    body: JSON.stringify({ productId, quantity }),
   });
 };
 
