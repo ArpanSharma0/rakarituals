@@ -11,7 +11,7 @@ export default function CreateProductPage() {
     name: "",
     price: 0,
     description: "",
-    image: "",
+    images: "", // Comma-separated string in form
     category: "",
     countInStock: 0,
     isBestSeller: false,
@@ -33,7 +33,11 @@ export default function CreateProductPage() {
     setError("");
 
     try {
-      const result = await createProduct(formData);
+      const dataToSubmit = {
+        ...formData,
+        images: formData.images.split(",").map((img) => img.trim()).filter((img) => img !== ""),
+      };
+      const result = await createProduct(dataToSubmit);
       // Backend returns the created product with _id
       router.push(`/product/${result._id}`);
     } catch (err) {
@@ -105,14 +109,14 @@ export default function CreateProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-[#2b2622] uppercase tracking-wider mb-2">Image URL</label>
+            <label className="block text-sm font-bold text-[#2b2622] uppercase tracking-wider mb-2">Image URLs (comma separated)</label>
             <input
               type="text"
-              name="image"
-              value={formData.image}
+              name="images"
+              value={formData.images}
               onChange={handleChange}
               required
-              placeholder="https://..."
+              placeholder="url1, url2, url3..."
               className="w-full p-4 rounded-xl border border-[#c8beaf] bg-[#f7f6f1] focus:ring-2 focus:ring-[#b89b5e] outline-none transition-all"
             />
           </div>

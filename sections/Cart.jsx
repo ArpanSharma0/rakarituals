@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useCart } from "@/context/CartContext";
-import { updateCartItem, placeOrder } from "@/utils/api";
+import { updateCartItem } from "@/utils/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -12,19 +12,9 @@ export default function CartSection() {
   const [updating, setUpdating] = useState(false);
   const router = useRouter();
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (cartItems.length === 0) return;
-    setUpdating(true);
-    try {
-      await placeOrder({ items: cartItems, totalPrice: subtotal });
-      await refreshCart();
-      alert("Order placed successfully!");
-      router.push("/orders");
-    } catch (err) {
-      alert(err.message || "Failed to place order");
-    } finally {
-      setUpdating(false);
-    }
+    router.push("/checkout");
   };
 
   const handleUpdateQuantity = async (productId, currentQty, delta) => {
@@ -54,9 +44,9 @@ export default function CartSection() {
   const subtotal = Array.isArray(cartItems) ? cartItems.reduce((acc, item) => {
     const priceRaw = item.product?.price || 0;
     const price = typeof priceRaw === "string" 
-      ? Number.parseFloat(priceRaw.replace(/[^0-9.]/g, "")) 
+      ? Number.parseFloat(priceRaw.replaceAll(/[^0-9.]/g, "")) 
       : Number(priceRaw);
-    return acc + (isNaN(price) ? 0 : price) * (item.quantity || 1);
+    return acc + (Number.isNaN(price) ? 0 : price) * (item.quantity || 1);
   }, 0) : 0;
 
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
@@ -116,7 +106,7 @@ export default function CartSection() {
           <div className="flex flex-col items-center md:items-end gap-4 min-w-[120px]">
             <span className="text-sm font-bold text-[#2b2622]">
               ₹{((typeof item.product.price === "string" 
-                  ? Number.parseFloat(item.product.price.replace(/[^0-9.]/g, "")) 
+                  ? Number.parseFloat(item.product.price.replaceAll(/[^0-9.]/g, "")) 
                   : Number(item.product.price)) * item.quantity).toFixed(2)}
             </span>
             <button 

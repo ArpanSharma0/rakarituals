@@ -78,6 +78,17 @@ export const logout = () => {
   localStorage.removeItem("user");
 };
 
+export const getUserProfile = async () => {
+  return apiFetch("/api/users/profile");
+};
+
+export const updateUserProfile = async (profileData) => {
+  return apiFetch("/api/users/profile", {
+    method: "PUT",
+    body: JSON.stringify(profileData),
+  });
+};
+
 // --- CART API ---
 
 export const getCart = async () => {
@@ -114,7 +125,7 @@ export const placeOrder = async (orderData) => {
 };
 
 export const getMyOrders = async () => {
-  return apiFetch("/api/orders");
+  return apiFetch("/api/orders/myorders");
 };
 
 // --- ADMIN PRODUCTS API ---

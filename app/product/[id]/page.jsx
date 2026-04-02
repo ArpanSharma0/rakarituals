@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchProductById, fetchBestSellers } from "@/utils/api";
@@ -12,19 +12,19 @@ import ProductCard from "@/components/ProductCard";
 
 // Trust Elements Component
 const TrustElements = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-8 border-t border-[#dcd4cb] mt-12">
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 py-8 border-t border-[#dcd4cb]/50 mt-8">
     {[
-      { icon: "🛡️", title: "Secure Checkout", desc: "PCI Compliant" },
-      { icon: "🚚", title: "Fast Delivery", desc: "48h Dispatch" },
-      { icon: "✨", title: "Premium Quality", desc: "Ritual Grade" },
-    ].map((item, idx) => (
-      <div key={idx} className="flex items-center gap-3 group">
-        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-[#dcd4cb] group-hover:scale-110 transition-transform">
-          <span className="text-lg">{item.icon}</span>
+      { id: "secure", icon: "🛡️", title: "Secure Ritual", desc: "PCI Certified" },
+      { id: "swift", icon: "🚚", title: "Swift Dispatch", desc: "48h Handled" },
+      { id: "pure", icon: "✨", title: "Pure Quality", desc: "Ritual Grade" },
+    ].map((item) => (
+      <div key={item.id} className="flex items-center gap-3">
+        <div className="w-10 h-10 flex items-center justify-center text-lg opacity-80">
+          <span>{item.icon}</span>
         </div>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-[#2b2622]">{item.title}</p>
-          <p className="text-[9px] font-medium text-[#6f6a65] uppercase tracking-wider">{item.desc}</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#2b2622]">{item.title}</p>
+          <p className="text-[8px] font-medium text-[#6f6a65]/60 uppercase tracking-widest">{item.desc}</p>
         </div>
       </div>
     ))}
@@ -60,6 +60,7 @@ export default function ProductDetailPage() {
   const [adding, setAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [success, setSuccess] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -128,173 +129,255 @@ export default function ProductDetailPage() {
     <div className="bg-[#f7f6f1] min-h-screen selection:bg-[#b89b5e]/20">
       <Navbar />
       
-      <main className="pt-32 pb-20 px-6 sm:px-12 lg:px-24">
-        <div className="max-w-7xl mx-auto">
-          {/* Main Product Layout */}
-          <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
+      <main className="pt-32 pb-40 px-6 sm:px-12">
+        <div className="max-w-[1240px] mx-auto">
+          {/* Main Symmetrical Grid based on Wireframe Proportions */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-16 items-start">
             
-            {/* Left: Enhanced Product Image */}
+            {/* Gallery Unit (Wireframe "Frame" - Thumbnails + Hero) */}
             <motion.div 
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="w-full lg:w-[55%] sticky top-32"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full flex flex-row gap-8 items-start"
             >
-              <div className="relative aspect-[4/5] rounded-[48px] overflow-hidden bg-white shadow-[0_32px_64px_-16px_rgba(43,38,34,0.1)] border border-[#dcd4cb] group">
-                <img 
-                  src={product.image} 
-                  alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-[2.5s] ease-out group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#2b2622]/10 to-transparent pointer-events-none"></div>
-                
-                {/* Image Overlay Label */}
-                <div className="absolute top-8 left-8">
-                  <span className="bg-white/90 backdrop-blur-md px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-[#2b2622] shadow-sm border border-[#dcd4cb]">
-                    {product.category || "Limited Edition"}
-                  </span>
+              {/* Vertical Thumbnails (Inside the Gallery Unit) */}
+              <div className="hidden lg:flex flex-col gap-3 w-20 sticky top-40">
+                {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, idx) => (
+                  <motion.div 
+                    key={`thumb-desktop-${idx}`} 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setActiveImage(idx)}
+                    className={`w-20 h-20 rounded-3xl border-2 transition-all cursor-pointer overflow-hidden p-2 bg-white flex items-center justify-center ${
+                      activeImage === idx ? "border-[#2b2622] shadow-xl ring-2 ring-[#2b2622]/5" : "border-[#dcd4cb]/10 opacity-30 hover:opacity-80"
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-contain" />
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Main Product Hero (Centered in Frame) */}
+              <div className="flex-1 bg-white/30 rounded-[60px] p-12 border border-[#dcd4cb]/30 shadow-inner group relative h-[500px] lg:h-[700px] flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.img 
+                    key={activeImage}
+                    initial={{ opacity: 0, scale: 0.85, filter: "blur(15px)" }}
+                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, scale: 1.15, filter: "blur(15px)" }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    layoutId={activeImage === 0 ? `product-image-${product._id}` : undefined}
+                    src={product.images && product.images.length > 0 ? product.images[activeImage] : product.image} 
+                    alt={product.name}
+                    className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(43,38,34,0.15)]"
+                  />
+                </AnimatePresence>
+
+                {/* Mobile Thumbnails (Horizontal Bottom) */}
+                <div className="absolute bottom-6 left-0 right-0 flex lg:hidden justify-center gap-3 px-4">
+                  {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, idx) => (
+                    <div 
+                      key={`thumb-mobile-${idx}`} 
+                      onClick={() => setActiveImage(idx)}
+                      className={`shrink-0 w-14 h-14 rounded-2xl border transition-all p-1.5 bg-white shadow-lg ${
+                        activeImage === idx ? "border-[#2b2622] scale-110" : "border-[#dcd4cb]/30 opacity-60"
+                      }`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-contain" />
+                    </div>
+                  ))}
                 </div>
               </div>
             </motion.div>
 
-            {/* Right: Product Info */}
+            {/* Information Panel (Strict Box-based UI) */}
             <motion.div 
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-              className="w-full lg:w-[45%] flex flex-col pt-4"
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+              className="lg:sticky lg:top-40 flex flex-col gap-5"
             >
-              <div className="mb-10">
-                <h1 className="text-5xl md:text-6xl font-bold tracking-tighter text-[#2b2622] leading-[0.9] mb-8">
+              {/* BOX 1: Title & Main Category (Full Width) */}
+              <div className="bg-white border border-[#dcd4cb]/50 rounded-[40px] p-10 shadow-sm space-y-4">
+                <nav className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-[#6f6a65]/50">
+                  <button onClick={() => router.push("/")} className="hover:text-[#2b2622] transition-colors">Temple Collection</button>
+                  <span className="opacity-10">•</span>
+                  <span className="text-[#b89b5e]">{product.category || "Ritual Piece"}</span>
+                </nav>
+                <h1 className="text-6xl lg:text-7xl font-bold tracking-tighter text-[#2b2622] leading-[0.9]">
                   {product.name}
                 </h1>
-                
-                <div className="flex items-end gap-5 mb-8">
-                  <span className="text-4xl font-bold text-[#2b2622] tracking-tighter">
-                    ₹{product.price.toLocaleString()}
-                  </span>
-                  <div className={`mb-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-colors ${
-                    product.countInStock > 0 
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
-                    : 'bg-rose-50 text-rose-700 border-rose-100'
-                  }`}>
-                    {product.countInStock > 0 ? "• In Stock" : "• Out of Stock"}
+              </div>
+
+              {/* BOX 2: Essential Value & Story (Medium Focus Box) */}
+              <div className="bg-white/60 backdrop-blur-xl border border-[#dcd4cb]/40 rounded-[40px] p-8 space-y-6">
+                <div className="flex items-baseline justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/60">Sacred Contribution</span>
+                    <p className="text-5xl font-bold text-[#2b2622] tracking-tighter font-serif">₹{product.price.toLocaleString()}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/40 block mb-1">Estimated Dispatch</span>
+                    <p className="text-[10px] font-bold text-[#2b2622]/60">Within 48 Temple Hours</p>
                   </div>
                 </div>
-
-                <p className="text-[#6f6a65] text-lg leading-relaxed italic border-l-2 border-[#b89b5e]/30 pl-6 py-2">
+                <p className="text-[#6f6a65] text-[15px] leading-relaxed font-light italic opacity-80 border-t border-[#dcd4cb]/30 pt-6">
                   "{product.description}"
                 </p>
               </div>
 
-              {/* Purchase Actions */}
-              <div className="bg-[#e8e1d9]/30 backdrop-blur-sm p-8 rounded-[32px] border border-[#dcd4cb] space-y-8">
-                {/* Quantity Selector */}
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6f6a65] mb-4 block">Select Quantity</label>
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center bg-white rounded-2xl border border-[#dcd4cb] p-1.5 shadow-sm">
-                      <button 
-                        onClick={() => adjustQuantity(-1)}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[#f7f6f1] text-[#2b2622] transition-colors disabled:opacity-30"
-                        disabled={quantity <= 1}
-                      >
-                        <span className="text-xl">−</span>
-                      </button>
-                      <span className="w-12 text-center font-bold text-[#2b2622] text-lg">{quantity}</span>
-                      <button 
-                        onClick={() => adjustQuantity(1)}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[#f7f6f1] text-[#2b2622] transition-colors disabled:opacity-30"
-                        disabled={quantity >= product.countInStock}
-                      >
-                        <span className="text-xl">+</span>
-                      </button>
-                    </div>
-                    <span className="text-[10px] font-bold text-[#6f6a65]/60 uppercase tracking-widest">
-                      {product.countInStock} units available
-                    </span>
+              {/* INTERACTION ROW: BOX 3 & BOX 4 (Symmetrical Half Boxes) */}
+              <div className="grid grid-cols-2 gap-5">
+                {/* BOX 3: Quantity */}
+                <div className="bg-white border border-[#dcd4cb]/60 rounded-[32px] p-6 flex flex-col items-center gap-3 group hover:border-[#2b2622]/20 transition-colors">
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/60">Divine Count</span>
+                  <div className="flex items-center justify-between w-full px-2">
+                    <button 
+                      onClick={() => adjustQuantity(-1)}
+                      className="w-10 h-10 flex items-center justify-center rounded-2xl bg-[#f7f6f1] text-[#2b2622] transition-transform hover:scale-110 active:scale-90 disabled:opacity-20"
+                      disabled={quantity <= 1}
+                    >
+                      <span className="text-xl">−</span>
+                    </button>
+                    <span className="font-bold text-[#2b2622] text-2xl font-mono">{quantity}</span>
+                    <button 
+                      onClick={() => adjustQuantity(1)}
+                      className="w-10 h-10 flex items-center justify-center rounded-2xl bg-[#f7f6f1] text-[#2b2622] transition-transform hover:scale-110 active:scale-90 disabled:opacity-20"
+                      disabled={quantity >= product.countInStock}
+                    >
+                      <span className="text-xl">+</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Add to Cart Button */}
-                <div className="flex flex-col gap-4">
-                  <button 
-                    onClick={handleAddToCart}
-                    disabled={adding || product.countInStock <= 0}
-                    className={`relative w-full overflow-hidden py-6 rounded-2xl font-black uppercase tracking-[0.25em] text-[11px] shadow-[0_20px_40px_-12px_rgba(43,38,34,0.3)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group ${
-                      success 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-[#2b2622] text-white hover:bg-[#b89b5e]'
-                    }`}
-                  >
-                    <AnimatePresence mode="wait">
-                      {adding ? (
-                        <motion.span 
-                          key="adding"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="flex items-center justify-center gap-3"
-                        >
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          Manifesting...
-                        </motion.span>
-                      ) : success ? (
-                        <motion.span 
-                          key="success"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="flex items-center justify-center gap-2"
-                        >
-                          Added Successfully ✨
-                        </motion.span>
-                      ) : (
-                        <motion.span 
-                          key="default"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="flex items-center justify-center gap-3"
-                        >
-                          Add to Sacred Cart
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </button>
-                  
-                  <p className="text-center text-[9px] font-bold text-[#6f6a65]/50 uppercase tracking-[0.2em]">
-                    Free Shipping on orders above ₹999
-                  </p>
+                {/* BOX 4: Ritual Availability */}
+                <div className="bg-[#2b2622] rounded-[32px] p-6 flex flex-col items-center justify-center gap-2 text-center shadow-xl">
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Temple Status</span>
+                  <div className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border ${
+                    product.countInStock > 0 
+                    ? 'text-[#b89b5e] border-[#b89b5e]/20 bg-[#b89b5e]/5' 
+                    : 'text-rose-400 border-rose-400/20 bg-rose-400/5'
+                  }`}>
+                    {product.countInStock > 0 ? "Ritual Ready" : "Departed"}
+                  </div>
                 </div>
               </div>
 
-              {/* Trust Elements */}
-              <TrustElements />
+              {/* BOX 5: Main Ritual CTA (Full Width) */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-[#b89b5e]/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <button 
+                  onClick={handleAddToCart}
+                  disabled={adding || product.countInStock <= 0}
+                  className={`relative w-full py-8 rounded-[40px] font-black uppercase tracking-[0.5em] text-[12px] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 overflow-hidden ${
+                    success ? 'bg-emerald-600' : 'bg-[#2b2622] text-white hover:shadow-[0_20px_40px_rgba(43,38,34,0.3)]'
+                  }`}
+                >
+                  <AnimatePresence mode="wait">
+                    {adding ? (
+                      <motion.span 
+                        key="adding"
+                        initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}
+                        className="flex items-center justify-center gap-4"
+                      >
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Invoking...
+                      </motion.span>
+                    ) : success ? (
+                      <motion.span 
+                        key="success"
+                        initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                        className="flex items-center justify-center gap-3"
+                      >
+                        Ritual Prepared ✨
+                      </motion.span>
+                    ) : (
+                      <motion.span 
+                        key="default"
+                        className="flex items-center justify-center gap-3"
+                      >
+                        Begin the Ritual
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </button>
+              </div>
+
+              {/* Integrated Trust Element Footer */}
+              <div className="mt-4 opacity-60 hover:opacity-100 transition-opacity">
+                <TrustElements />
+              </div>
             </motion.div>
+          </div>
+
+          {/* BELOW THE FOLD: Narrative Section */}
+          <div className="mt-40 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-24 items-center">
+            <div className="space-y-12">
+              <div className="space-y-6">
+                <span className="text-[#b89b5e] font-black uppercase tracking-[0.5em] text-[11px] block">Manifestation & Narrative</span>
+                <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-[#2b2622] leading-none">The Essence of {product.name}</h2>
+                <p className="text-xl text-[#6f6a65] font-light leading-relaxed max-w-3xl italic">
+                  Crafted by master artisans within the Rakarituals Collective, this limited piece serves as a vessel for focused intention. It is not merely an object, but a milestone in your spiritual architecture.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 border-t border-[#dcd4cb] pt-12">
+                <div className="space-y-4">
+                  <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-[#2b2622]">Maintenance Ceremony</h4>
+                  <p className="text-base text-[#6f6a65] font-light leading-relaxed opacity-80">
+                    Handle only with cleansed hands. To preserve the sacred integrity, ensure the object stays within its designated sanctuary space, away from active currents.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-[#2b2622]">Vessel Specifications</h4>
+                  <ul className="text-[12px] space-y-4 font-mono opacity-80 uppercase">
+                    <li className="flex justify-between border-b border-[#dcd4cb]/40 pb-2"><span>Aura Grade</span><span className="font-bold text-[#b89b5e]">Ritual Elite</span></li>
+                    <li className="flex justify-between border-b border-[#dcd4cb]/40 pb-2"><span>Harmonic Origin</span><span className="font-bold">Sacred Valley</span></li>
+                    <li className="flex justify-between border-b border-[#dcd4cb]/40 pb-2"><span>Weight Class</span><span className="font-bold">Harmonious</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="hidden lg:block relative group">
+              <div className="absolute -inset-4 bg-gradient-to-tr from-[#b89b5e]/10 to-transparent blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+              <div className="relative aspect-[4/5] rounded-[60px] overflow-hidden shadow-[0_40px_80px_rgba(43,38,34,0.12)]">
+                <img 
+                  src={product.images && product.images.length > 0 ? product.images[0] : product.image} 
+                  className="w-full h-full object-cover transition-transform duration-[3s] group-hover:scale-110" 
+                  alt="" 
+                />
+                <div className="absolute inset-0 bg-black/5 flex items-center justify-center p-12 text-center text-white backdrop-blur-[2px] opacity-0 hover:opacity-100 transition-opacity duration-700">
+                  <p className="italic text-2xl font-serif leading-relaxed line-clamp-4">"True luxury is found in the silence between intentions."</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Related Products Section */}
           {relatedProducts.length > 0 && (
             <motion.div 
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="mt-32 pt-24 border-t border-[#dcd4cb]"
+              className="mt-40 pt-24 border-t-2 border-[#2b2622]/5"
             >
-              <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-                <div>
-                  <span className="text-[#b89b5e] font-black uppercase tracking-[0.4em] text-[10px] block mb-4">Complete your flow</span>
-                  <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-[#2b2622]">Other Top Picks</h2>
+              <div className="flex items-center justify-between mb-16 px-4">
+                <div className="space-y-4">
+                  <span className="text-[#b89b5e] font-black uppercase tracking-[0.5em] text-[11px]">The Flow Continues</span>
+                  <h2 className="text-5xl md:text-6xl font-bold tracking-tighter text-[#2b2622]">Resonant Pieces</h2>
                 </div>
                 <button 
                   onClick={() => router.push("/")}
-                  className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2b2622] hover:text-[#b89b5e] transition-colors pb-1 border-b-2 border-[#2b2622] hover:border-[#b89b5e]"
+                  className="hidden md:flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-[#2b2622] group"
                 >
-                  View All Products
+                  <span className="border-b-2 border-[#2b2622] pb-1 group-hover:text-[#b89b5e] group-hover:border-[#b89b5e] transition-colors">Temple Catalog</span>
+                  <span className="text-xl transition-transform group-hover:translate-x-2">→</span>
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
                 {relatedProducts.map((p, idx) => (
                   <motion.div 
                     key={p._id}

@@ -5,13 +5,16 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useAuth();
   const { cartItems = [] } = useCart();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isProductPage = pathname?.startsWith("/product");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,7 +31,11 @@ export default function Navbar() {
   }, []);
 
   const navOpacity = useTransform(scrollY, [0.9 * h, 1.1 * h], [0, 1]);
-  const linkColor = scrolled ? "text-[#6f6a65] hover:text-[#2b2622]" : "text-white/80 hover:text-white";
+  
+  // Theme state: white for product pages, dynamic for others
+  const isWhiteNav = isProductPage || scrolled;
+  const linkColor = isWhiteNav ? "text-[#3b2f2f] hover:text-[#2b2622]" : "text-white/80 hover:text-white";
+  const logoColor = isWhiteNav ? "text-[#3b2f2f]" : "text-white";
 
   const handleLogout = () => {
     logout();
@@ -38,16 +45,18 @@ export default function Navbar() {
   return (
     <nav 
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 backdrop-blur-xl ${
-        scrolled 
-          ? "bg-transparent shadow-[0_1px_20px_rgba(0,0,0,0.02)] border-b border-[#2b2622]/5 py-4" 
-          : "bg-transparent border-b border-white/0 py-6"
+        isProductPage 
+          ? "bg-white/95 shadow-[0_4px_30px_rgba(0,0,0,0.05)] border-b border-[#2b2622]/5 py-4"
+          : scrolled 
+            ? "bg-white/80 shadow-[0_1px_20px_rgba(0,0,0,0.02)] border-b border-[#2b2622]/5 py-4" 
+            : "bg-transparent border-b border-white/0 py-6"
       }`}
     >
       <div className="ritual-container flex items-center justify-between px-6">
       {/* Left: Logo */}
       <motion.div 
-        style={{ opacity: navOpacity }}
-        className="text-2xl font-bold tracking-tighter uppercase w-[180px] text-[#2b2622]"
+        style={{ opacity: isProductPage ? 1 : navOpacity }}
+        className={`text-2xl font-bold tracking-tighter uppercase w-[180px] transition-colors duration-500 ${logoColor}`}
       >
         <Link href="/">RAKARITUALS</Link>
       </motion.div>
@@ -78,6 +87,12 @@ export default function Navbar() {
             <span className={`text-[10px] font-bold uppercase tracking-widest ${linkColor}`}>
               {user.name}
             </span>
+            <Link 
+              href="/profile"
+              className={`text-[10px] font-bold uppercase tracking-widest hover:text-[#b89b5e] transition-colors ${linkColor}`}
+            >
+              Profile
+            </Link>
             <Link 
               href="/orders"
               className={`text-[10px] font-bold uppercase tracking-widest hover:text-[#b89b5e] transition-colors ${linkColor}`}
