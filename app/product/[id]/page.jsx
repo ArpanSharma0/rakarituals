@@ -33,7 +33,7 @@ const TrustElements = () => (
 
 // Loading Skeleton Component
 const Skeleton = () => (
-  <div className="min-h-screen bg-[#f7f6f1] pt-32 pb-20 px-6 sm:px-12 lg:px-24 animate-pulse">
+  <div className="min-h-screen bg-[#f7f6f1] pt-4 pb-20 px-6 sm:px-12 lg:px-24 animate-pulse">
     <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16">
       <div className="w-full lg:w-1/2 aspect-square rounded-[40px] bg-[#e8e1d9]"></div>
       <div className="w-full lg:w-1/2 flex flex-col gap-6">
@@ -129,7 +129,7 @@ export default function ProductDetailPage() {
     <div className="bg-[#f7f6f1] min-h-screen selection:bg-[#b89b5e]/20">
       <Navbar />
       
-      <main className="pt-32 pb-40 px-6 sm:px-12">
+      <main className="pt-28 pb-40 px-6 sm:px-12">
         <div className="max-w-[1240px] mx-auto">
           {/* Main Symmetrical Grid based on Wireframe Proportions */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-16 items-start">
@@ -159,7 +159,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Main Product Hero (Centered in Frame) */}
-              <div className="flex-1 bg-white/30 rounded-[60px] p-12 border border-[#dcd4cb]/30 shadow-inner group relative h-[500px] lg:h-[700px] flex items-center justify-center">
+              <div className="flex-1 bg-white/30 rounded-[40px] p-8 border border-[#dcd4cb]/30 shadow-inner group relative h-[400px] lg:h-[550px] flex items-center justify-center">
                 <AnimatePresence mode="wait">
                   <motion.img 
                     key={activeImage}
@@ -196,65 +196,65 @@ export default function ProductDetailPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-              className="lg:sticky lg:top-40 flex flex-col gap-5"
+              className="lg:sticky lg:top-28 flex flex-col gap-4"
             >
               {/* BOX 1: Title & Main Category (Full Width) */}
-              <div className="bg-white border border-[#dcd4cb]/50 rounded-[40px] p-10 shadow-sm space-y-4">
-                <nav className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-[#6f6a65]/50">
+              <div className="bg-white border border-[#dcd4cb]/50 rounded-[30px] p-6 shadow-sm space-y-2">
+                <nav className="flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-[#6f6a65]/50">
                   <button onClick={() => router.push("/")} className="hover:text-[#2b2622] transition-colors">Temple Collection</button>
                   <span className="opacity-10">•</span>
                   <span className="text-[#b89b5e]">{product.category || "Ritual Piece"}</span>
                 </nav>
-                <h1 className="text-6xl lg:text-7xl font-bold tracking-tighter text-[#2b2622] leading-[0.9]">
+                <h1 className="text-4xl lg:text-5xl font-bold tracking-tighter text-[#2b2622] leading-tight">
                   {product.name}
                 </h1>
               </div>
 
               {/* BOX 2: Essential Value & Story (Medium Focus Box) */}
-              <div className="bg-white/60 backdrop-blur-xl border border-[#dcd4cb]/40 rounded-[40px] p-8 space-y-6">
+              <div className="bg-white/60 backdrop-blur-xl border border-[#dcd4cb]/40 rounded-[30px] p-6 space-y-4">
                 <div className="flex items-baseline justify-between gap-4">
                   <div className="space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/60">Sacred Contribution</span>
-                    <p className="text-5xl font-bold text-[#2b2622] tracking-tighter font-serif">₹{product.price.toLocaleString()}</p>
+                    <p className="text-3xl lg:text-4xl font-bold text-[#2b2622] tracking-tighter font-serif">₹{product.price.toLocaleString()}</p>
                   </div>
                   <div className="text-right">
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/40 block mb-1">Estimated Dispatch</span>
                     <p className="text-[10px] font-bold text-[#2b2622]/60">Within 48 Temple Hours</p>
                   </div>
                 </div>
-                <p className="text-[#6f6a65] text-[15px] leading-relaxed font-light italic opacity-80 border-t border-[#dcd4cb]/30 pt-6">
+                <p className="text-[#6f6a65] text-xs leading-relaxed font-light italic opacity-80 border-t border-[#dcd4cb]/30 pt-4">
                   "{product.description}"
                 </p>
               </div>
 
               {/* INTERACTION ROW: BOX 3 & BOX 4 (Symmetrical Half Boxes) */}
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-2 gap-4">
                 {/* BOX 3: Quantity */}
-                <div className="bg-white border border-[#dcd4cb]/60 rounded-[32px] p-6 flex flex-col items-center gap-3 group hover:border-[#2b2622]/20 transition-colors">
+                <div className="bg-white border border-[#dcd4cb]/60 rounded-[24px] p-4 flex flex-col items-center gap-2 group hover:border-[#2b2622]/20 transition-colors">
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/60">Divine Count</span>
-                  <div className="flex items-center justify-between w-full px-2">
+                  <div className="flex items-center justify-between w-full px-1">
                     <button 
                       onClick={() => adjustQuantity(-1)}
-                      className="w-10 h-10 flex items-center justify-center rounded-2xl bg-[#f7f6f1] text-[#2b2622] transition-transform hover:scale-110 active:scale-90 disabled:opacity-20"
+                      className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#f7f6f1] text-[#2b2622] transition-transform hover:scale-110 active:scale-90 disabled:opacity-20"
                       disabled={quantity <= 1}
                     >
-                      <span className="text-xl">−</span>
+                      <span className="text-lg">−</span>
                     </button>
-                    <span className="font-bold text-[#2b2622] text-2xl font-mono">{quantity}</span>
+                    <span className="font-bold text-[#2b2622] text-lg font-mono">{quantity}</span>
                     <button 
                       onClick={() => adjustQuantity(1)}
-                      className="w-10 h-10 flex items-center justify-center rounded-2xl bg-[#f7f6f1] text-[#2b2622] transition-transform hover:scale-110 active:scale-90 disabled:opacity-20"
+                      className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#f7f6f1] text-[#2b2622] transition-transform hover:scale-110 active:scale-90 disabled:opacity-20"
                       disabled={quantity >= product.countInStock}
                     >
-                      <span className="text-xl">+</span>
+                      <span className="text-lg">+</span>
                     </button>
                   </div>
                 </div>
 
                 {/* BOX 4: Ritual Availability */}
-                <div className="bg-[#2b2622] rounded-[32px] p-6 flex flex-col items-center justify-center gap-2 text-center shadow-xl">
+                <div className="bg-[#2b2622] rounded-[24px] p-4 flex flex-col items-center justify-center gap-2 text-center shadow-xl">
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Temple Status</span>
-                  <div className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border ${
+                  <div className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
                     product.countInStock > 0 
                     ? 'text-[#b89b5e] border-[#b89b5e]/20 bg-[#b89b5e]/5' 
                     : 'text-rose-400 border-rose-400/20 bg-rose-400/5'
@@ -270,7 +270,7 @@ export default function ProductDetailPage() {
                 <button 
                   onClick={handleAddToCart}
                   disabled={adding || product.countInStock <= 0}
-                  className={`relative w-full py-8 rounded-[40px] font-black uppercase tracking-[0.5em] text-[12px] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 overflow-hidden ${
+                  className={`relative w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] text-[10px] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 overflow-hidden ${
                     success ? 'bg-emerald-600' : 'bg-[#2b2622] text-white hover:shadow-[0_20px_40px_rgba(43,38,34,0.3)]'
                   }`}
                 >
@@ -281,7 +281,7 @@ export default function ProductDetailPage() {
                         initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}
                         className="flex items-center justify-center gap-4"
                       >
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                         Invoking...
                       </motion.span>
                     ) : success ? (
@@ -303,6 +303,7 @@ export default function ProductDetailPage() {
                   </AnimatePresence>
                 </button>
               </div>
+
 
               {/* Integrated Trust Element Footer */}
               <div className="mt-4 opacity-60 hover:opacity-100 transition-opacity">

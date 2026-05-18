@@ -45,7 +45,7 @@ export default function AllProducts() {
   }
 
   return (
-    <section id="products" className="ritual-section bg-[#f7f6f1] section-layer">
+    <section id="all-products" className="ritual-section bg-[#f7f6f1] section-layer">
       <div className="ritual-container">
 
         <motion.div

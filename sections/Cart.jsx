@@ -53,7 +53,7 @@ export default function CartSection() {
     return (
       <div className="text-center py-20 bg-white rounded-[32px] border border-[#2b2622]/5 shadow-sm">
         <p className="text-[#6f6a65] mb-8 font-medium italic">No ritual objects selected.</p>
-        <Link href="/" className="text-[#b89b5e] font-bold uppercase tracking-widest text-xs hover:underline decoration-2 underline-offset-8">
+        <Link href="/#all-products" className="text-[#b89b5e] font-bold uppercase tracking-widest text-xs hover:underline decoration-2 underline-offset-8">
           Explore Collection
         </Link>
       </div>

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { getUserProfile, updateUserProfile, getMyOrders } from "@/utils/api";
 import { useRouter } from "next/navigation";
+import { OrdersContent } from "../orders/page";
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -112,30 +114,34 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen pt-32 pb-20 bg-[#fdfcfb]">
-      <div className="ritual-container max-w-5xl mx-auto px-6">
-        <header className="mb-12">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-serif text-[#2b2622] mb-2"
-          >
-            My Sacred Space
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-[#6f6a65] font-light"
-          >
-            Manage your personal rituals and journey with us.
-          </motion.p>
-        </header>
+    <div className="min-h-screen pt-4 pb-20 bg-[#fdfcfb]">
+      <div className="ritual-container max-w-[1440px] mx-auto px-6 lg:px-12 w-full">
+        <div className="flex flex-col lg:flex-row gap-12 items-start">
+          {/* Left Column: Fixed / Sticky Header & Tabs */}
+          <aside className="w-full lg:w-80 shrink-0 lg:sticky  space-y-6">
+            <Link href="/" className="text-[10px] uppercase tracking-widest text-[#b89b5e] font-bold hover:underline mb-2 inline-block">
+              ← Back to Home
+            </Link>
+            <header>
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-4xl font-serif text-[#2b2622] mb-2"
+              >
+                My Sacred Space
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-[#6f6a65] font-light text-sm"
+              >
+                Manage your personal rituals and journey with us.
+              </motion.p>
+            </header>
 
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar Tabs */}
-          <aside className="w-full md:w-64 shrink-0">
-            <div className="sticky top-32 space-y-2 p-1 bg-white/50 backdrop-blur-md rounded-2xl border border-[#2b2622]/5">
+            {/* Sidebar Tabs */}
+            <div className="space-y-2 p-1 bg-white/50 backdrop-blur-md rounded-2xl border border-[#2b2622]/5">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -153,7 +159,7 @@ export default function ProfilePage() {
           </aside>
 
           {/* Main Content Area */}
-          <main className="flex-1">
+          <main className="flex-1 w-full">
             <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl border border-[#2b2622]/5 shadow-sm min-h-[500px]">
               <AnimatePresence mode="wait">
                 {activeTab === "info" && (
@@ -299,68 +305,9 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-6"
+                    className="w-full"
                   >
-                    <h2 className="text-2xl font-medium text-[#2b2622] mb-6">Ritual History</h2>
-                    {orders.length === 0 ? (
-                      <div className="text-center py-20 border-2 border-dashed border-[#2b2622]/10 rounded-3xl">
-                        <p className="text-[#6f6a65] font-light italic">No rituals recorded yet.</p>
-                        <button 
-                          onClick={() => router.push("/")}
-                          className="mt-4 text-[#b89b5e] font-medium hover:underline"
-                        >
-                          Discover your first ritual
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {orders.map((order) => (
-                          <div 
-                            key={order._id} 
-                            className="p-6 bg-white rounded-2xl border border-[#2b2622]/5 shadow-sm hover:shadow-md transition-shadow"
-                          >
-                            <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-                              <div>
-                                <p className="text-[10px] uppercase tracking-widest text-[#6f6a65] mb-1">Order ID</p>
-                                <p className="font-mono text-sm text-[#2b2622]">{order._id}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-[10px] uppercase tracking-widest text-[#6f6a65] mb-1">Date</p>
-                                <p className="text-sm text-[#2b2622]">
-                                  {new Date(order.createdAt).toLocaleDateString("en-US", {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })}
-                                </p>
-                              </div>
-                            </div>
-                            
-                            <div className="border-t border-[#2b2622]/5 pt-4 flex justify-between items-center">
-                              <div className="flex -space-x-2">
-                                {order.orderItems.map((item) => (
-                                  <div 
-                                    key={item.product || item._id || item.name} 
-                                    className="w-10 h-10 rounded-full border-2 border-white bg-[#f8f5f2] flex items-center justify-center text-[10px] font-bold text-[#b89b5e] overflow-hidden"
-                                    title={item.name}
-                                  >
-                                    {item.name.charAt(0)}
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="text-right">
-                                <p className="text-lg font-medium text-[#2b2622]">${order.totalPrice.toFixed(2)}</p>
-                                <span className={`text-[10px] uppercase tracking-tighter font-bold px-2 py-1 rounded-full ${
-                                  order.isPaid ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                                }`}>
-                                  {order.isPaid ? "Paid" : "Pending Payment"}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <OrdersContent isNested={true} />
                   </motion.div>
                 )}
               </AnimatePresence>

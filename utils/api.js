@@ -29,12 +29,26 @@ const apiFetch = async (endpoint, options = {}) => {
     console.log("RESPONSE:", url, data);
 
     if (!res.ok) {
-      throw new Error(data.message || "API request failed");
+      const errorMsg = data.message || "API request failed";
+      
+      // Categorize console output: 4xx Client Validation vs 5xx Server Errors
+      if (res.status >= 400 && res.status < 500) {
+        console.warn(`API Client Validation (${res.status} at ${url}):`, errorMsg);
+      } else {
+        console.error(`API Server Error (${res.status} at ${url}):`, errorMsg);
+      }
+
+      const apiError = new Error(errorMsg);
+      apiError.status = res.status;
+      throw apiError;
     }
 
     return data;
   } catch (error) {
-    console.error(`API Error (${url}):`, error.message);
+    // Only log standard network connection/browser failures as severe error
+    if (!error.status) {
+      console.error(`Network / Connection Error (${url}):`, error.message || error);
+    }
     throw error;
   }
 };
@@ -124,8 +138,33 @@ export const placeOrder = async (orderData) => {
   });
 };
 
+export const verifyPayment = async (orderId, paymentData) => {
+  return apiFetch(`/api/orders/${orderId}/pay`, {
+    method: "POST",
+    body: JSON.stringify(paymentData),
+  });
+};
+
 export const getMyOrders = async () => {
   return apiFetch("/api/orders/myorders");
+};
+
+export const getAllOrders = async () => {
+  return apiFetch("/api/orders");
+};
+
+export const updateOrderDeliveryStatus = async (orderId, deliveryStatus) => {
+  return apiFetch(`/api/orders/${orderId}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ deliveryStatus }),
+  });
+};
+
+export const cancelOrderAPI = async (orderId, cancelData) => {
+  return apiFetch(`/api/orders/${orderId}/cancel`, {
+    method: "PUT",
+    body: JSON.stringify(cancelData),
+  });
 };
 
 // --- ADMIN PRODUCTS API ---
@@ -152,4 +191,21 @@ export const deleteProduct = async (id) => {
 
 export const fetchProductById = async (id) => {
   return apiFetch(`/api/products/${id}`);
+};
+
+export const uploadImage = async (fileFormData) => {
+  const token = getToken();
+  const res = await fetch(`${API_URL}/api/upload`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: fileFormData,
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to upload image");
+  }
+  return data;
 };

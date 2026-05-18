@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { fetchProductById, updateProduct } from "@/utils/api";
+import { fetchProductById, updateProduct, uploadImage } from "@/utils/api";
 import Link from "next/link";
 
 export default function EditProductPage({ params }) {
@@ -21,6 +21,39 @@ export default function EditProductPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploadingImage(true);
+    setError("");
+
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const uploadData = new FormData();
+        uploadData.append("image", file);
+        const data = await uploadImage(uploadData);
+        return data.url;
+      });
+
+      const urls = await Promise.all(uploadPromises);
+      
+      setFormData((prev) => {
+        const existingUrls = prev.images ? prev.images.split(",").map(u => u.trim()).filter(Boolean) : [];
+        const newUrls = [...existingUrls, ...urls];
+        return {
+          ...prev,
+          images: newUrls.join(", "),
+        };
+      });
+    } catch (err) {
+      setError(err.message || "Failed to upload one or more images");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -58,9 +91,14 @@ export default function EditProductPage({ params }) {
     setError("");
 
     try {
+      const imageUrls = formData.images.split(",").map((img) => img.trim()).filter((img) => img !== "");
+      if (imageUrls.length === 0) {
+        throw new Error("At least one product image is required.");
+      }
       const dataToSubmit = {
         ...formData,
-        images: formData.images.split(",").map((img) => img.trim()).filter((img) => img !== ""),
+        images: imageUrls,
+        image: imageUrls[0],
       };
       await updateProduct(id, dataToSubmit);
       alert("Product updated successfully!");
@@ -139,16 +177,59 @@ export default function EditProductPage({ params }) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-bold text-[#2b2622] uppercase tracking-wider mb-2">Image URLs (comma separated)</label>
-            <input
-              type="text"
-              name="images"
-              value={formData.images}
-              onChange={handleChange}
-              required
-              className="w-full p-4 rounded-xl border border-[#c8beaf] bg-[#f7f6f1] focus:ring-2 focus:ring-[#b89b5e] outline-none transition-all"
-            />
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-[#2b2622] uppercase tracking-wider mb-2">Product Images</label>
+            <div className="flex flex-col gap-4 bg-[#f7f6f1] p-6 rounded-2xl border border-[#c8beaf]">
+              {/* File Upload Dropzone */}
+              <div className="relative group/upload h-[100px] border border-dashed border-[#c8beaf] rounded-xl bg-white flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-[#e8e1d9]/30 hover:border-[#b89b5e]">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  disabled={uploadingImage}
+                  multiple
+                />
+                {uploadingImage ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#b89b5e]"></div>
+                    <span className="text-[10px] uppercase font-black tracking-widest text-[#b89b5e]">Uploading to Temple Cloud...</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1 text-center px-4">
+                    <svg className="w-5 h-5 text-[#b89b5e] mb-1 group-hover/upload:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span className="text-[10px] uppercase font-black tracking-widest text-[#2b2622]">Upload Image</span>
+                    <span className="text-[8px] font-bold text-[#6f6a65]/40 uppercase tracking-wider">JPG, PNG up to 5MB</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Image Preview List */}
+              {formData.images && (
+                <div className="flex gap-2 items-center flex-wrap px-1">
+                  {formData.images.split(',').filter(Boolean).map((imgUrl, index) => (
+                    <div key={index} className="relative w-12 h-12 rounded-lg overflow-hidden border border-[#c8beaf] group/thumb">
+                      <img src={imgUrl.trim()} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const remaining = formData.images.split(',')
+                            .map(url => url.trim())
+                            .filter((_, idx) => idx !== index)
+                            .join(', ');
+                          setFormData(prev => ({ ...prev, images: remaining }));
+                        }}
+                        className="absolute inset-0 bg-rose-600/80 flex items-center justify-center text-white text-xs opacity-0 group-hover/thumb:opacity-100 transition-opacity cursor-pointer font-bold"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="md:col-span-2">

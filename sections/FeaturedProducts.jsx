@@ -9,6 +9,13 @@ const fadeInUp = {
 };
 
 export default function FeaturedProducts() {
+  const handleScrollToProducts = () => {
+    const element = document.getElementById("all-products");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section id="products" className="ritual-section bg-[#f7f6f1] section-layer">
       <div className="ritual-container grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
@@ -24,7 +31,10 @@ export default function FeaturedProducts() {
           <p className="text-lg text-[#6f6a65] mb-10 max-w-lg">
             Each piece in our collection is handcrafted using traditional techniques passed down through generations. Designed to ground your energy and elevate your daily rituals.
           </p>
-          <button className="btn-primary px-10 py-4 shadow-premium">
+          <button 
+            onClick={handleScrollToProducts}
+            className="btn-primary px-10 py-4 shadow-premium cursor-pointer"
+          >
             View Collection
           </button>
         </motion.div>

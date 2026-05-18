@@ -199,6 +199,13 @@ export default function HeroSequence() {
     };
   }, { scope: containerRef });
 
+  const handleScrollToProducts = () => {
+    const element = document.getElementById("all-products");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <motion.section ref={containerRef} style={{ backgroundColor }} className="relative w-full h-[500vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden">
@@ -225,7 +232,10 @@ export default function HeroSequence() {
                 Meditate and Grow
               </p>
               <br />
-              <button className="px-8 py-3 bg-black text-white font-semibold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+              <button 
+                onClick={handleScrollToProducts}
+                className="px-8 py-3 bg-black text-white font-semibold uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer"
+              >
                 Explore Collection
               </button>
             </motion.div>

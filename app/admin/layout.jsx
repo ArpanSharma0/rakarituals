@@ -2,35 +2,151 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+// --- Minimalist SVG Icons ---
+const DashboardIcon = () => (
+  <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+  </svg>
+);
+
+const ProductsIcon = () => (
+  <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+  </svg>
+);
+
+const AddIcon = () => (
+  <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const OrdersIcon = () => (
+  <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+  </svg>
+);
+
 export default function AdminLayout({ children }) {
-  const { user, loading } = useAuth();
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Isolated Admin Auth States
+  const [adminUser, setAdminUser] = useState(null);
+  const [adminToken, setAdminToken] = useState(null);
+
+  // Admin login/signup form states
+  const [isAdminRegister, setIsAdminRegister] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  // Verify isolated admin session on mount
   useEffect(() => {
-    if (!loading) {
-      if (!user || user.isAdmin === false) {
-        // Assume user object has isAdmin if available, but prompt says if (!token) redirect("/")
-        // Given the instructions, we can assume a token existence check is primary.
-        const token = localStorage.getItem("token");
-        if (!token) {
-          router.push("/");
-        } else {
+    const storedToken = localStorage.getItem("adminToken");
+    const storedUser = localStorage.getItem("adminUser");
+
+    if (storedToken && storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed && parsed.isAdmin === true) {
+          setAdminToken(storedToken);
+          setAdminUser(parsed);
           setIsAuthorized(true);
+        } else {
+          setIsAuthorized(false);
         }
-      } else {
-        setIsAuthorized(true);
+      } catch (e) {
+        setIsAuthorized(false);
       }
+    } else {
+      setIsAuthorized(false);
     }
-  }, [user, loading, router]);
+    setLoading(false);
+  }, []);
+
+  // Isolated Authentication Handler (isolated from customer session)
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthLoading(true);
+
+    try {
+      const endpoint = isAdminRegister ? "/api/auth/register" : "/api/auth/login";
+      const url = `${API_URL}${endpoint}`;
+      
+      const bodyData = isAdminRegister
+        ? { name: formData.name, email: formData.email, password: formData.password }
+        : { email: formData.email, password: formData.password };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Authentication failed");
+      }
+
+      const token = data.token;
+      const userObj = data.user || data;
+
+      if (!token) {
+        throw new Error("No token returned from server");
+      }
+
+      // Verify Admin privileges
+      if (userObj.isAdmin === true) {
+        // Save to completely separate admin credentials
+        localStorage.setItem("adminToken", token);
+        localStorage.setItem("adminUser", JSON.stringify(userObj));
+        
+        setAdminToken(token);
+        setAdminUser(userObj);
+        setIsAuthorized(true);
+      } else {
+        throw new Error("This account does not have Admin privileges. Please use a valid Admin account.");
+      }
+    } catch (err) {
+      setAuthError(err.message || "Authentication failed");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
+    setAdminToken(null);
+    setAdminUser(null);
+    setIsAuthorized(false);
+    setFormData({ name: "", email: "", password: "" });
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const pathname = usePathname();
   const isActive = (path) => pathname === path;
 
-  if (loading || !isAuthorized) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#f7f6f1]">
         <div className="flex flex-col items-center gap-4">
@@ -41,54 +157,224 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  const NavLink = ({ href, children }) => (
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#f7f6f1] flex flex-col items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[32px] p-8 md:p-10 shadow-2xl border border-[#2b2622]/5">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-serif text-[#2b2622] tracking-tighter leading-none">RakaRituals</h2>
+            <p className="text-[10px] text-[#6f6a65] uppercase font-black tracking-[0.3em] mt-3 bg-[#e8e1d9] inline-block px-3 py-1 rounded-full">Admin Gate</p>
+          </div>
+
+          {/* Mode Switcher */}
+          <div className="grid grid-cols-2 gap-2 bg-[#f8f5f2] p-1 rounded-2xl border border-[#2b2622]/5 mb-6">
+            <button
+              onClick={() => { setIsAdminRegister(false); setAuthError(""); }}
+              className={`py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                !isAdminRegister 
+                  ? "bg-[#2b2622] text-white shadow-md cursor-pointer" 
+                  : "text-[#6f6a65] hover:text-[#2b2622] cursor-pointer"
+              }`}
+            >
+              Admin Login
+            </button>
+            <button
+              onClick={() => { setIsAdminRegister(true); setAuthError(""); }}
+              className={`py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                isAdminRegister 
+                  ? "bg-[#2b2622] text-white shadow-md cursor-pointer" 
+                  : "text-[#6f6a65] hover:text-[#2b2622] cursor-pointer"
+              }`}
+            >
+              Sign Up
+            </button>
+          </div>
+
+          {authError && (
+            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-xs rounded-xl p-4 mb-6 font-medium italic">
+              ⚠️ {authError}
+            </div>
+          )}
+
+          <form onSubmit={handleAuthSubmit} className="space-y-5">
+            {isAdminRegister && (
+              <div className="space-y-1.5 flex flex-col">
+                <label className="text-[10px] uppercase tracking-widest text-[#6f6a65] font-bold ml-1">Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#f8f5f2] border-0 rounded-xl px-4 py-3 text-sm text-[#2b2622] focus:ring-2 focus:ring-[#b89b5e]/20 transition-all outline-none italic placeholder:text-[#6f6a65]/40"
+                  placeholder="Enter name"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1.5 flex flex-col">
+              <label className="text-[10px] uppercase tracking-widest text-[#6f6a65] font-bold ml-1">Email Address</label>
+              <input
+                type="email"
+                name="email"
+                required
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full bg-[#f8f5f2] border-0 rounded-xl px-4 py-3 text-sm text-[#2b2622] focus:ring-2 focus:ring-[#b89b5e]/20 transition-all outline-none italic placeholder:text-[#6f6a65]/40"
+                placeholder="Enter admin email"
+              />
+            </div>
+
+            <div className="space-y-1.5 flex flex-col">
+              <label className="text-[10px] uppercase tracking-widest text-[#6f6a65] font-bold ml-1">Password</label>
+              <input
+                type="password"
+                name="password"
+                required
+                value={formData.password}
+                onChange={handleInputChange}
+                className="w-full bg-[#f8f5f2] border-0 rounded-xl px-4 py-3 text-sm text-[#2b2622] focus:ring-2 focus:ring-[#b89b5e]/20 transition-all outline-none italic placeholder:text-[#6f6a65]/40"
+                placeholder="Enter password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={authLoading}
+              className="w-full py-4 bg-[#b89b5e] hover:bg-[#2b2622] text-white font-bold uppercase tracking-[0.2em] text-xs rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer mt-4"
+            >
+              {authLoading ? "Verifying..." : isAdminRegister ? "Register Admin Account" : "Access Admin Panel"}
+            </button>
+          </form>
+
+          {/* Test Admin Credentials Alert Box */}
+          {!isAdminRegister && (
+            <div className="mt-6 bg-[#f8f5f2] border border-[#2b2622]/5 rounded-xl p-4">
+              <p className="text-[9px] uppercase tracking-widest font-black text-[#b89b5e] mb-1.5">🔑 Demo Credentials</p>
+              <div className="text-[11px] text-[#6f6a65] leading-relaxed italic">
+                <span className="font-semibold text-[#2b2622]">Email:</span> admin@example.com<br/>
+                <span className="font-semibold text-[#2b2622]">Password:</span> admin123
+              </div>
+            </div>
+          )}
+
+          <div className="mt-8 text-center">
+            <Link 
+              href="/"
+              className="text-[10px] uppercase tracking-widest text-[#6f6a65] font-bold hover:text-[#b89b5e] transition-colors"
+            >
+              ← Back to Temple
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const NavLink = ({ href, icon, children }) => (
     <Link 
       href={href} 
-      className={`px-6 py-4 rounded-2xl transition-all font-bold text-sm flex items-center gap-4 group ${
+      onClick={() => setIsMobileMenuOpen(false)}
+      className={`px-5 py-3.5 rounded-xl transition-all font-bold text-sm flex items-center gap-3.5 group ${
         isActive(href) 
-        ? "bg-[#2b2622] text-white shadow-lg -translate-x-2" 
+        ? "bg-[#2b2622] text-white shadow-lg" 
         : "text-[#6f6a65] hover:bg-[#f7f6f1] hover:text-[#2b2622]"
       }`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full transition-all ${isActive(href) ? "bg-[#b89b5e] scale-150" : "bg-transparent group-hover:bg-[#b89b5e]"}`}></span>
+      <span className={`transition-all ${isActive(href) ? "text-[#b89b5e] scale-110" : "text-[#6f6a65] group-hover:text-[#2b2622]"}`}>
+        {icon}
+      </span>
       {children}
     </Link>
   );
 
   return (
-    <div className="min-h-screen bg-[#f7f6f1] flex flex-col md:flex-row">
-      {/* Admin Sidebar */}
-      <aside className="w-full md:w-[20%] bg-[#e8e1d9] p-8 flex flex-col gap-10 border-r border-[#dcd4cb] sticky top-0 h-screen overflow-y-auto">
-        <div className="mb-4">
-          <h2 className="text-3xl font-bold text-[#2b2622] tracking-tighter leading-none">Raka<br/>Rituals</h2>
-          <p className="text-[10px] text-[#6f6a65] uppercase font-black tracking-[0.3em] mt-4 bg-[#dcd4cb] inline-block px-3 py-1 rounded-full">Admin Elite</p>
+    <div className="min-h-screen bg-[#f7f6f1] flex flex-col lg:flex-row lg:h-screen lg:overflow-hidden">
+      
+      {/* Mobile Sticky Header Bar */}
+      <header className="lg:hidden w-full bg-[#e8e1d9] px-6 py-3 flex items-center justify-between border-b border-[#dcd4cb] sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <div className="w-20 h-10 overflow-hidden flex items-center justify-center">
+            <img 
+              src="/assets/images/rakaa_logo.png" 
+              alt="RakaRituals Logo" 
+              className="w-full h-full object-contain scale-[1.7] origin-center" 
+            />
+          </div>
+          <span className="text-[8px] text-[#6f6a65] uppercase font-bold tracking-[0.2em] bg-[#dcd4cb] px-2 py-0.5 rounded-full">Admin Panel</span>
+        </div>
+        <button 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 text-[#2b2622] hover:bg-[#dcd4cb] rounded-lg transition-colors cursor-pointer"
+        >
+          {isMobileMenuOpen ? (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          )}
+        </button>
+      </header>
+
+      {/* Mobile Drawer Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-30 transition-opacity"
+        />
+      )}
+
+      {/* Sidebar Drawer container (Always stationary on desktop, drawers on mobile) */}
+      <aside className={`fixed inset-y-0 left-0 w-72 bg-[#e8e1d9] p-8 flex flex-col gap-4 border-r border-[#dcd4cb] z-35 transition-transform duration-300 transform 
+        lg:translate-x-0 lg:static lg:h-screen lg:w-64 xl:w-72 lg:flex-shrink-0 lg:z-auto
+        ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        <div className="hidden lg:block">
+          <div className="w-full h-24 overflow-hidden flex items-center justify-center">
+            <img 
+              src="/assets/images/rakaa_logo.png" 
+              alt="RakaRituals Logo" 
+              className="w-full h-full object-contain scale-[1.7] origin-center" 
+            />
+          </div>
         </div>
         
-        <nav className="flex flex-col gap-2">
-          <NavLink href="/admin">Dashboard</NavLink>
-          <NavLink href="/admin/products">Products</NavLink>
-          <NavLink href="/admin/create-product">Add Ritual</NavLink>
-          
-          <div className="px-6 py-4 rounded-2xl opacity-20 cursor-not-allowed text-[#6f6a65] font-bold text-sm flex items-center gap-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#6f6a65]"></span>
-            Orders (Soon)
+        <div className="flex-grow flex flex-col gap-6">
+          <div>
+            <p className="text-[9px] uppercase tracking-[0.2em] font-black text-[#b89b5e] mb-4">Management</p>
+            <nav className="flex flex-col gap-1.5">
+              <NavLink href="/admin" icon={<DashboardIcon />}>Dashboard</NavLink>
+              <NavLink href="/admin/products" icon={<ProductsIcon />}>Products</NavLink>
+              <NavLink href="/admin/orders" icon={<OrdersIcon />}>Orders</NavLink>
+            </nav>
           </div>
-          
-          <div className="mt-12 pt-8 border-t border-[#dcd4cb]">
-            <Link 
-              href="/" 
-              className="px-6 py-3 rounded-xl hover:bg-[#f7f6f1] transition-all text-[#6f6a65] text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 opacity-60 hover:opacity-100"
-            >
-              ← Back to Temple
-            </Link>
-          </div>
-        </nav>
+        </div>
+
+        {/* Dedicated Admin Logout at the very bottom */}
+        <div className="pt-6 border-t border-[#dcd4cb]">
+          <button 
+            onClick={() => {
+              handleAdminLogout();
+              setIsMobileMenuOpen(false);
+            }} 
+            className="w-full px-5 py-3.5 rounded-xl hover:bg-rose-50 hover:text-rose-600 transition-all text-[#6f6a65] text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3.5 cursor-pointer text-left"
+          >
+            <svg className="w-4 h-4 shrink-0 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout Admin
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main className="w-full md:w-[80%] p-8 md:p-14 overflow-y-auto bg-stone-50/30">
+      <main className="flex-1 p-6 sm:p-8 lg:p-14 bg-stone-50/30 w-full h-[calc(100vh-80px)] lg:h-full lg:overflow-y-auto overflow-y-auto">
         {children}
       </main>
+
     </div>
   );
 }

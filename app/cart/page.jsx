@@ -27,8 +27,11 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f6f1] pt-32 pb-20 px-6 md:px-20">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#f7f6f1] pt-4 pb-20 px-6 lg:px-12">
+      <div className="max-w-[1440px] mx-auto w-full">
+        <Link href="/" className="text-[10px] uppercase tracking-widest text-[#b89b5e] font-bold hover:underline mb-6 inline-block">
+          ← Back to Home
+        </Link>
         <div className="flex items-center justify-between mb-12 border-b border-[#2b2622]/5 pb-8">
           <h1 className="text-4xl font-bold uppercase tracking-tighter text-[#2b2622]">Your Cart</h1>
           <span className="text-[#b89b5e] font-bold text-sm tracking-widest uppercase">{cartItems.length} Objects</span>
