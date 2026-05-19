@@ -18,6 +18,9 @@ const cormorant = Cormorant_Garamond({
 export const metadata = {
   title: "RakaRituals",
   description: "E-commerce platform",
+  icons: {
+    icon: "/assets/images/raka_favicon.png?v=1",
+  },
 };
 
 // eslint-disable-next-line react/prop-types

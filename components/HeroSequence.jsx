@@ -74,6 +74,9 @@ export default function HeroSequence() {
   const bgParallax = useTransform(scrollYProgress, [0, 1], [0, -60]);
 
   useEffect(() => {
+    // Clear any previous preloaded images to prevent duplicates (especially in React StrictMode)
+    imagesRef.current = [];
+    
     // 1. Preload images (No React State, No re-renders)
     for (let i = 1; i <= frameCount; i++) {
         const img = new Image();
@@ -118,8 +121,21 @@ export default function HeroSequence() {
     let renderRequested = false;
 
     const render = (frameIndex) => {
+      // Release the render lock immediately so subsequent frames can be requested
+      renderRequested = false;
+
       const img = imagesRef.current[frameIndex];
-      if (!img || !img.complete || img.naturalWidth === 0) return;
+      if (!img) return;
+
+      // If the image hasn't loaded yet, register an onload callback to render it when ready
+      if (!img.complete || img.naturalWidth === 0) {
+        img.onload = () => {
+          if (currentFrame === frameIndex) {
+            requestRender(frameIndex);
+          }
+        };
+        return;
+      }
       
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
@@ -154,7 +170,6 @@ export default function HeroSequence() {
       }
 
       ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-      renderRequested = false;
     };
 
     const requestRender = (frameIndex) => {

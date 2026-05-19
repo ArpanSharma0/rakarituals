@@ -67,7 +67,7 @@ export default function Navbar() {
       <div className="ritual-container flex items-center justify-between px-6">
       {/* Left: Logo */}
       <motion.div 
-        style={{ opacity: isWhiteNav ? 1 : navOpacity }}
+        style={{ opacity: isHomepage ? navOpacity : 1 }}
         className={`text-2xl font-bold tracking-tighter uppercase w-[180px] transition-colors duration-500 ${logoColor}`}
       >
         <Link href="/">RAKARITUALS</Link>
