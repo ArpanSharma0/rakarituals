@@ -33,6 +33,16 @@ export default function CheckoutPage() {
   const [referral, setReferral] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Online"); // "Online" or "COD"
 
+  const isCODAllowed = cartItems.every(
+    (item) => item.product && item.product.isCODAllowed !== false
+  );
+
+  useEffect(() => {
+    if (!isCODAllowed && paymentMethod === "COD") {
+      setPaymentMethod("Online");
+    }
+  }, [isCODAllowed, paymentMethod]);
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login");
@@ -365,22 +375,37 @@ export default function CheckoutPage() {
 
                       <button
                         type="button"
-                        onClick={() => setPaymentMethod("COD")}
-                        className={`text-left p-5 rounded-2xl border transition-all cursor-pointer ${
-                          paymentMethod === "COD" 
-                            ? "border-[#b89b5e] bg-[#b89b5e]/5 shadow-sm" 
-                            : "border-[#2b2622]/10 bg-transparent hover:border-[#2b2622]/20"
+                        onClick={() => {
+                          if (isCODAllowed) {
+                            setPaymentMethod("COD");
+                          }
+                        }}
+                        disabled={!isCODAllowed}
+                        className={`text-left p-5 rounded-2xl border transition-all ${
+                          !isCODAllowed
+                            ? "border-[#2b2622]/5 bg-[#fbfbfa] opacity-60 cursor-not-allowed"
+                            : paymentMethod === "COD" 
+                            ? "border-[#b89b5e] bg-[#b89b5e]/5 shadow-sm cursor-pointer" 
+                            : "border-[#2b2622]/10 bg-transparent hover:border-[#2b2622]/20 cursor-pointer"
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-bold text-[#2b2622] text-xs">Cash on Delivery (COD)</p>
-                            <p className="text-[10px] text-[#6f6a65] mt-1 font-light">Pay in cash when your spiritual offering is delivered</p>
+                            {isCODAllowed ? (
+                              <p className="text-[10px] text-[#6f6a65] mt-1 font-light">Pay in cash when your spiritual offering is delivered</p>
+                            ) : (
+                              <p className="text-[10px] text-red-500 mt-1 font-medium italic">Not available for one or more items in cart</p>
+                            )}
                           </div>
                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                            paymentMethod === "COD" ? "border-[#b89b5e] bg-[#b89b5e]" : "border-[#2b2622]/20"
+                            !isCODAllowed 
+                              ? "border-[#2b2622]/10 bg-[#f2eee9]" 
+                              : paymentMethod === "COD" 
+                              ? "border-[#b89b5e] bg-[#b89b5e]" 
+                              : "border-[#2b2622]/20"
                           }`}>
-                            {paymentMethod === "COD" && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                            {paymentMethod === "COD" && isCODAllowed && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                           </div>
                         </div>
                       </button>

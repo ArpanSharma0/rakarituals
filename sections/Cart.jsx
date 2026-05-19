@@ -17,9 +17,10 @@ export default function CartSection() {
     router.push("/checkout");
   };
 
-  const handleUpdateQuantity = async (productId, currentQty, delta) => {
+  const handleUpdateQuantity = async (productId, currentQty, delta, maxStock) => {
     const newQty = currentQty + delta;
     if (newQty < 1) return;
+    if (maxStock && newQty > maxStock) return;
     setUpdating(true);
     try {
       const token = localStorage.getItem("token");
@@ -86,20 +87,23 @@ export default function CartSection() {
             
             <div className="flex items-center justify-center md:justify-start gap-4">
               <button 
-                onClick={() => handleUpdateQuantity(item.product._id, item.quantity, -1)}
-                disabled={updating}
-                className={`w-8 h-8 rounded-full border border-[#2b2622]/10 flex items-center justify-center text-[#2b2622] hover:bg-[#2b2622] hover:text-white transition-all ${updating ? 'opacity-50' : ''}`}
+                onClick={() => handleUpdateQuantity(item.product._id, item.quantity, -1, item.product.countInStock)}
+                disabled={updating || item.quantity <= 1}
+                className={`w-8 h-8 rounded-full border border-[#2b2622]/10 flex items-center justify-center text-[#2b2622] hover:bg-[#2b2622] hover:text-white transition-all ${updating || item.quantity <= 1 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 -
               </button>
               <span className="text-xs font-bold text-[#2b2622] w-4 text-center">{item.quantity}</span>
               <button 
-                onClick={() => handleUpdateQuantity(item.product._id, item.quantity, 1)}
-                disabled={updating}
-                className={`w-8 h-8 rounded-full border border-[#2b2622]/10 flex items-center justify-center text-[#2b2622] hover:bg-[#2b2622] hover:text-white transition-all ${updating ? 'opacity-50' : ''}`}
+                onClick={() => handleUpdateQuantity(item.product._id, item.quantity, 1, item.product.countInStock)}
+                disabled={updating || item.quantity >= (item.product.countInStock || 0)}
+                className={`w-8 h-8 rounded-full border border-[#2b2622]/10 flex items-center justify-center text-[#2b2622] hover:bg-[#2b2622] hover:text-white transition-all ${updating || item.quantity >= (item.product.countInStock || 0) ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 +
               </button>
+              {item.quantity >= (item.product.countInStock || 0) && (
+                <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">Max</span>
+              )}
             </div>
           </div>
 

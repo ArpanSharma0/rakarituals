@@ -14,8 +14,11 @@ const ProductCard = ({ product }) => {
 
   if (!product) return null;
 
+  const isOutOfStock = !product.countInStock || product.countInStock <= 0;
+
   const handleAddToCart = async (e) => {
     e.stopPropagation();
+    if (isOutOfStock) return;
     if (!user) {
       router.push("/login");
       return;
@@ -45,7 +48,7 @@ const ProductCard = ({ product }) => {
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            className={`w-full h-full object-cover transition-transform duration-700 hover:scale-105 ${isOutOfStock ? 'opacity-50 grayscale' : ''}`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#2b2622]/20 font-bold text-xs uppercase tracking-widest text-center px-4">
@@ -53,6 +56,11 @@ const ProductCard = ({ product }) => {
           </div>
         )}
         <div className="absolute inset-0 bg-[#b89b5e]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        {isOutOfStock && (
+          <div className="absolute top-3 left-3 bg-[#2b2622]/80 text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full">
+            Out of Stock
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col flex-grow">
@@ -63,13 +71,19 @@ const ProductCard = ({ product }) => {
           <span className="text-xl font-bold text-[#2b2622] tracking-tighter">
             ₹{product.price}
           </span>
-          <button 
-            onClick={handleAddToCart}
-            disabled={adding}
-            className={`text-[10px] font-black tracking-[0.2em] text-[#b89b5e] hover:text-[#2b2622] transition-colors uppercase ${adding ? 'opacity-50' : ''}`}
-          >
-            {adding ? "Adding..." : "Add to Cart"}
-          </button>
+          {isOutOfStock ? (
+            <span className="text-[10px] font-black tracking-[0.2em] text-red-400 uppercase">
+              Sold Out
+            </span>
+          ) : (
+            <button 
+              onClick={handleAddToCart}
+              disabled={adding}
+              className={`text-[10px] font-black tracking-[0.2em] text-[#b89b5e] hover:text-[#2b2622] transition-colors uppercase cursor-pointer ${adding ? 'opacity-50' : ''}`}
+            >
+              {adding ? "Adding..." : "Add to Cart"}
+            </button>
+          )}
         </div>
       </div>
     </motion.div>

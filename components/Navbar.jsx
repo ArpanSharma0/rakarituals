@@ -6,6 +6,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useRouter, usePathname } from "next/navigation";
+import SearchBar from "./SearchOverlay";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -92,8 +93,11 @@ export default function Navbar() {
         ))}
       </div>
 
-      {/* Right: Login/SignUp & Cart */}
+      {/* Right: Search, Login/SignUp & Cart */}
       <div className="hidden md:flex items-center gap-5">
+        {/* Search */}
+        <SearchBar linkColor={linkColor} />
+
         {user ? (
           <div className="relative group">
             {/* Avatar Trigger button */}

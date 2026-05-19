@@ -24,7 +24,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${lato.variable} ${cormorant.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
-      <body className="bg-primary-background text-text font-sans antialiased overflow-x-hidden relative">
+      <body className="bg-primary-background text-text font-sans antialiased overflow-x-hidden relative" suppressHydrationWarning>
         <AuthProvider>
           <CartProvider>
             {/* ATMOSPHERIC OVERLAYS */}

@@ -18,6 +18,7 @@ const apiFetch = async (endpoint, options = {}) => {
   
   try {
     const res = await fetch(url, {
+      cache: 'no-store',
       ...options,
       headers: {
         ...getHeaders(),
@@ -55,6 +56,12 @@ const apiFetch = async (endpoint, options = {}) => {
 
 export const fetchProducts = async () => {
   return apiFetch("/api/products");
+};
+
+export const searchProducts = async (keyword = "") => {
+  const params = new URLSearchParams();
+  if (keyword) params.append("keyword", keyword);
+  return apiFetch(`/api/products?${params.toString()}`);
 };
 
 export const fetchBestSellers = async () => {
@@ -208,4 +215,23 @@ export const uploadImage = async (fileFormData) => {
     throw new Error(data.message || "Failed to upload image");
   }
   return data;
+};
+
+// --- CATEGORIES API ---
+
+export const fetchCategories = async () => {
+  return apiFetch("/api/categories");
+};
+
+export const createCategory = async (name) => {
+  return apiFetch("/api/categories", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+};
+
+export const deleteCategory = async (id) => {
+  return apiFetch(`/api/categories/${id}`, {
+    method: "DELETE",
+  });
 };

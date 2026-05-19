@@ -215,7 +215,7 @@ export default function AdminOrdersPage() {
                 placeholder="Search orders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-[34px] bg-white border border-[#dcd4cb] rounded-xl pl-8.5 pr-7 text-[9px] sm:text-[10px] font-medium text-[#2b2622] placeholder:text-[#6f6a65]/40 outline-none focus:border-[#b89b5e] focus:ring-1 focus:ring-[#b89b5e] transition-all"
+                className="w-full h-[34px] bg-white border border-[#dcd4cb] rounded-xl pl-9 pr-7 text-[9px] sm:text-[10px] font-medium text-[#2b2622] placeholder:text-[#6f6a65]/40 outline-none focus:border-[#b89b5e] focus:ring-1 focus:ring-[#b89b5e] transition-all"
               />
               {searchQuery && (
                 <button
@@ -346,7 +346,7 @@ export default function AdminOrdersPage() {
                     </td>
 
                     {/* Price and Payment status */}
-                    <td className="py-6 px-6 space-y-1">
+                    <td className="py-6 px-6 space-y-1.5">
                       <p className="font-bold text-[#2b2622] text-sm">₹{order.totalPrice?.toFixed(2)}</p>
                       <div className="flex items-center gap-1.5">
                         <span className={`w-1.5 h-1.5 rounded-full ${order.isPaid ? 'bg-green-500' : 'bg-amber-500'}`} />
@@ -354,6 +354,13 @@ export default function AdminOrdersPage() {
                           {order.isPaid ? "Paid" : "Unpaid"}
                         </span>
                       </div>
+                      <span className={`inline-block text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border whitespace-nowrap ${
+                        order.paymentMethod === 'COD'
+                          ? 'bg-orange-50 text-orange-600 border-orange-200/50'
+                          : 'bg-blue-50 text-blue-600 border-blue-200/50'
+                      }`}>
+                        {order.paymentMethod === 'COD' ? '💵 COD' : '💳 Online'}
+                      </span>
                     </td>
 
                     {/* Referral */}

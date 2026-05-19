@@ -457,7 +457,15 @@ export function OrdersContent({ isNested = false }) {
                             <div className="bg-[#fcfbf9] p-5 rounded-2xl border border-[#2b2622]/5 space-y-3 font-mono text-[10px]">
                               <div>
                                 <span className="font-sans font-bold text-[9px] uppercase text-[#6f6a65]/60 block mb-0.5">Payment Method</span>
-                                <span className="text-[#2b2622] font-sans font-bold uppercase tracking-wider">Razorpay Online Gateway</span>
+                                <div className="flex items-center gap-2">
+                                  <span className={`inline-block text-[9px] font-sans font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                                    order.paymentMethod === 'COD'
+                                      ? 'bg-orange-50 text-orange-600 border-orange-200/50'
+                                      : 'bg-blue-50 text-blue-600 border-blue-200/50'
+                                  }`}>
+                                    {order.paymentMethod === 'COD' ? '💵 Cash on Delivery' : '💳 Online Payment'}
+                                  </span>
+                                </div>
                               </div>
                               {order.razorpayOrderId && (
                                 <div>
@@ -540,11 +548,11 @@ export function OrdersContent({ isNested = false }) {
                               
                               <div className="relative flex justify-between items-center max-w-xl mx-auto px-4 py-2">
                                 {/* Connecting Line background */}
-                                <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-[#e8e1d9] z-0" />
+                                <div className="absolute left-6 right-6 top-[18px] h-0.5 bg-[#e8e1d9] z-0" />
                                 
                                 {/* Connecting Line filled color */}
                                 <div 
-                                  className="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-[#b89b5e] transition-all duration-500 z-0" 
+                                  className="absolute left-6 top-[18px] h-0.5 bg-[#b89b5e] transition-all duration-500 z-0" 
                                   style={{ 
                                     width: order.deliveryStatus === 'Delivered' 
                                       ? 'calc(100% - 48px)' 
