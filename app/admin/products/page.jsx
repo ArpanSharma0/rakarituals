@@ -247,38 +247,38 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-10 mb-20 px-4 sm:px-0">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 md:gap-10 mb-12 md:mb-20 px-4 sm:px-0">
         <div>
-          <span className="text-[#b89b5e] font-black tracking-[0.5em] uppercase text-[10px] block mb-4">— Inventory Chamber —</span>
-          <h1 className="text-7xl font-bold tracking-tighter text-[#2b2622] leading-none mb-4">Temple Catalog</h1>
-          <p className="text-[#6f6a65] text-sm max-w-lg leading-relaxed opacity-60 italic">Refine your divine offerings. Every change here manifests across the entire ritual experience.</p>
+          <span className="text-[#b89b5e] font-black tracking-[0.5em] uppercase text-[9px] md:text-[10px] block mb-2 md:mb-4">— Inventory Chamber —</span>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-[#2b2622] leading-none mb-3 md:mb-4">Temple Catalog</h1>
+          <p className="text-[#6f6a65] text-xs md:text-sm max-w-lg leading-relaxed opacity-60 italic">Refine your divine offerings. Every change here manifests across the entire ritual experience.</p>
         </div>
         <Link 
           href="/admin/create-product"
-          className="bg-[#2b2622] text-white px-10 py-5 rounded-[28px] font-black text-xs uppercase tracking-[0.2em] hover:bg-[#b89b5e] transition-all shadow-[0_20px_40px_rgba(43,38,34,0.15)] hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(184,155,94,0.25)] active:scale-95 group"
+          className="bg-[#2b2622] text-white w-full xl:w-auto text-center px-6 py-4 md:px-10 md:py-5 rounded-[20px] md:rounded-[28px] font-black text-[10px] md:text-xs uppercase tracking-[0.2em] hover:bg-[#b89b5e] transition-all shadow-[0_20px_40px_rgba(43,38,34,0.15)] hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(184,155,94,0.25)] active:scale-95 group"
         >
-          <span className="flex items-center gap-3">
-            Add New Ritual <span className="text-xl group-hover:rotate-90 transition-transform inline-block">+</span>
+          <span className="flex items-center justify-center xl:justify-start gap-3">
+            Add New Ritual <span className="text-lg md:text-xl group-hover:rotate-90 transition-transform inline-block">+</span>
           </span>
         </Link>
       </div>
 
       {/* Modern Control Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-10 px-4 sm:px-0">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 mb-8 md:mb-10 px-4 sm:px-0">
         <div className="md:col-span-7 relative group">
           <input 
             type="text" 
             placeholder="Seek ritual by name..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-[#dcd4cb] rounded-[24px] px-8 py-5 text-sm font-bold outline-none focus:border-[#b89b5e] focus:shadow-[0_10px_30px_rgba(184,155,94,0.05)] transition-all group-hover:border-[#b89b5e]/40"
+            className="w-full bg-white border border-[#dcd4cb] rounded-[16px] md:rounded-[24px] px-5 py-4 md:px-8 md:py-5 text-xs md:text-sm font-bold outline-none focus:border-[#b89b5e] focus:shadow-[0_10px_30px_rgba(184,155,94,0.05)] transition-all group-hover:border-[#b89b5e]/40"
           />
-          <span className="absolute right-8 top-1/2 -translate-y-1/2 opacity-20 text-xl group-hover:opacity-40 transition-opacity italic">Seeking</span>
+          <span className="absolute right-5 md:right-8 top-1/2 -translate-y-1/2 opacity-20 text-lg md:text-xl group-hover:opacity-40 transition-opacity italic">Seeking</span>
         </div>
         <div className="md:col-span-3">
           <button 
             onClick={() => setFilterBestseller(!filterBestseller)}
-            className={`w-full h-full px-8 py-5 rounded-[24px] text-[10px] font-black uppercase tracking-widest border transition-all ${
+            className={`w-full h-full px-5 py-4 md:px-8 md:py-5 rounded-[16px] md:rounded-[24px] text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all ${
               filterBestseller 
               ? 'bg-[#b89b5e] text-white border-[#b89b5e] shadow-[0_10px_30px_rgba(184,155,94,0.1)]' 
               : 'bg-white text-[#6f6a65]/60 border-[#dcd4cb] hover:border-[#b89b5e] hover:text-[#b89b5e]'
@@ -287,8 +287,8 @@ export default function AdminProductsPage() {
             {filterBestseller ? 'Illuminated Path Only' : 'Show All Rituals'}
           </button>
         </div>
-        <div className="md:col-span-2 bg-[#e2ddd5] rounded-[24px] px-6 py-5 flex items-center justify-center border border-[#dcd4cb]">
-          <span className="text-[10px] font-black uppercase tracking-widest text-[#2b2622]/40">
+        <div className="md:col-span-2 bg-[#e2ddd5] rounded-[16px] md:rounded-[24px] px-4 py-4 md:px-6 md:py-5 flex items-center justify-center border border-[#dcd4cb]">
+          <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#2b2622]/40">
             {filteredProducts.length} Sacred Items
           </span>
         </div>

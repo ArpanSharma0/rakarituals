@@ -399,7 +399,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* Core Dynamic Statistics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
         <StatCard title="Sales" prefix="₹" value={stats.totalSales} subtitle="Divine Revenue" />
         <StatCard title="Available Stock" value={stats.totalStock} subtitle="Sacred Inventory" />
         <StatCard title="Total Orders" value={stats.totalOrders} subtitle="Ritual Journeys" />

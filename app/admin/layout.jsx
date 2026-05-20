@@ -292,7 +292,7 @@ export default function AdminLayout({ children }) {
     <div className="min-h-screen bg-[#f7f6f1] flex flex-col lg:flex-row lg:h-screen lg:overflow-hidden">
       
       {/* Mobile Sticky Header Bar */}
-      <header className="lg:hidden w-full bg-[#e8e1d9] px-6 py-3 flex items-center justify-between border-b border-[#dcd4cb] sticky top-0 z-40">
+      <header className="lg:hidden w-full bg-[#e8e1d9] px-6 py-3 flex items-center justify-between border-b border-[#dcd4cb] sticky top-0 z-[60]">
         <div className="flex items-center gap-3">
           <div className="w-20 h-10 overflow-hidden flex items-center justify-center">
             <img 
@@ -323,12 +323,12 @@ export default function AdminLayout({ children }) {
       {isMobileMenuOpen && (
         <div 
           onClick={() => setIsMobileMenuOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-30 transition-opacity"
+          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
         />
       )}
 
-      {/* Sidebar Drawer container (Always stationary on desktop, drawers on mobile) */}
-      <aside className={`fixed inset-y-0 left-0 w-72 bg-[#e8e1d9] p-8 flex flex-col gap-4 border-r border-[#dcd4cb] z-35 transition-transform duration-300 transform 
+      {/* Sidebar Drawer container */}
+      <aside className={`fixed top-[65px] bottom-0 lg:inset-y-0 left-0 w-72 bg-[#e8e1d9] p-8 flex flex-col gap-4 border-r border-[#dcd4cb] z-50 transition-transform duration-300 transform lg:rounded-none
         lg:translate-x-0 lg:static lg:h-screen lg:w-64 xl:w-72 lg:flex-shrink-0 lg:z-auto
         ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
       >

@@ -121,18 +121,18 @@ export default function CreateProductPage() {
       )}
 
       {/* Header — matching Temple Catalog style */}
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-10 mb-20 px-4 sm:px-0">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 md:gap-10 mb-12 md:mb-20 px-4 sm:px-0">
         <div>
-          <span className="text-[#b89b5e] font-black tracking-[0.5em] uppercase text-[10px] block mb-4">— New Manifestation —</span>
-          <h1 className="text-7xl font-bold tracking-tighter text-[#2b2622] leading-none mb-4">Create Ritual</h1>
-          <p className="text-[#6f6a65] text-sm max-w-lg leading-relaxed opacity-60 italic">Bring a new sacred offering into the temple. Fill in every detail to manifest this ritual.</p>
+          <span className="text-[#b89b5e] font-black tracking-[0.5em] uppercase text-[9px] md:text-[10px] block mb-2 md:mb-4">— New Manifestation —</span>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-[#2b2622] leading-none mb-3 md:mb-4">Create Ritual</h1>
+          <p className="text-[#6f6a65] text-xs md:text-sm max-w-lg leading-relaxed opacity-60 italic">Bring a new sacred offering into the temple. Fill in every detail to manifest this ritual.</p>
         </div>
         <Link
           href="/admin/products"
-          className="bg-[#2b2622] text-white px-10 py-5 rounded-[28px] font-black text-xs uppercase tracking-[0.2em] hover:bg-[#b89b5e] transition-all shadow-[0_20px_40px_rgba(43,38,34,0.15)] hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(184,155,94,0.25)] active:scale-95 group"
+          className="bg-[#2b2622] text-white w-full xl:w-auto text-center px-6 py-4 md:px-10 md:py-5 rounded-[20px] md:rounded-[28px] font-black text-[10px] md:text-xs uppercase tracking-[0.2em] hover:bg-[#b89b5e] transition-all shadow-[0_20px_40px_rgba(43,38,34,0.15)] hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(184,155,94,0.25)] active:scale-95 group"
         >
-          <span className="flex items-center gap-3">
-            <span className="text-xl group-hover:-translate-x-1 transition-transform inline-block">←</span> Back to Catalog
+          <span className="flex items-center justify-center xl:justify-start gap-3">
+            <span className="text-lg md:text-xl group-hover:-translate-x-1 transition-transform inline-block">←</span> Back to Catalog
           </span>
         </Link>
       </div>
