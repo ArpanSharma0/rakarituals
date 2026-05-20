@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSocket } from "@/context/SocketContext";
 
 export function OrdersContent({ isNested = false }) {
   const { user, loading: authLoading } = useAuth();
@@ -23,6 +24,7 @@ export function OrdersContent({ isNested = false }) {
   const [cancelReason, setCancelReason] = useState("");
   const [cancelComments, setCancelComments] = useState("");
   const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   const toggleExpand = (orderId) => {
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
@@ -72,6 +74,13 @@ export function OrdersContent({ isNested = false }) {
     }
   };
 
+  const socket = useSocket();
+
+  const showNotification = (type, text) => {
+    setNotification({ type, text });
+    setTimeout(() => setNotification(null), 5000);
+  };
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login");
@@ -94,6 +103,43 @@ export function OrdersContent({ isNested = false }) {
       fetchOrders();
     }
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (!socket || !user) return;
+
+    const handleOrderCreated = (newOrder) => {
+      const orderUserId = newOrder.user?._id || newOrder.user?.id || newOrder.user;
+      const currentUserId = user._id || user.id;
+
+      if (orderUserId && currentUserId && orderUserId.toString() === currentUserId.toString()) {
+        setOrders((prevOrders) => {
+          if (prevOrders.some((o) => o._id === newOrder._id)) return prevOrders;
+          return [newOrder, ...prevOrders];
+        });
+        showNotification("success", `New Order Placed: #${newOrder._id?.slice(-8).toUpperCase()}`);
+      }
+    };
+
+    const handleOrderUpdated = (updatedOrder) => {
+      const orderUserId = updatedOrder.user?._id || updatedOrder.user?.id || updatedOrder.user;
+      const currentUserId = user._id || user.id;
+
+      if (orderUserId && currentUserId && orderUserId.toString() === currentUserId.toString()) {
+        setOrders((prevOrders) =>
+          prevOrders.map((ord) => (ord._id === updatedOrder._id ? updatedOrder : ord))
+        );
+        showNotification("success", `Order #${updatedOrder._id?.slice(-8).toUpperCase()} status updated to: ${updatedOrder.deliveryStatus}`);
+      }
+    };
+
+    socket.on("orderCreated", handleOrderCreated);
+    socket.on("orderUpdated", handleOrderUpdated);
+
+    return () => {
+      socket.off("orderCreated", handleOrderCreated);
+      socket.off("orderUpdated", handleOrderUpdated);
+    };
+  }, [socket, user]);
 
   // Filter orders by active tab and selected date range
   const filteredOrders = orders.filter((order) => {
@@ -166,6 +212,29 @@ export function OrdersContent({ isNested = false }) {
   return (
     <div className={isNested ? "w-full" : "min-h-screen pt-4 pb-20 px-6 lg:px-12 bg-[#fdfaf5]"}>
       <div className={isNested ? "w-full" : "max-w-[1440px] mx-auto w-full"}>
+        {/* Toast Notification */}
+        <AnimatePresence>
+          {notification && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-2xl shadow-xl border text-xs font-bold uppercase tracking-widest flex items-center gap-3 transition-all ${
+                notification.type === "success" 
+                  ? "bg-[#2b2622] text-white border-[#b89b5e]" 
+                  : "bg-red-600 text-white border-red-700"
+              }`}
+            >
+              {notification.type === "success" ? (
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-ping" />
+              ) : (
+                <span className="w-2 h-2 bg-white rounded-full" />
+              )}
+              {notification.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Payment Success Toast/Banner */}
         {showSuccess && (
           <motion.div

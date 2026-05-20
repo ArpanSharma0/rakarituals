@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/sections/Footer";
 import ProductCard from "@/components/ProductCard";
+import { useSocket } from "@/context/SocketContext";
 
 // Trust Elements Component
 const TrustElements = () => (
@@ -83,6 +84,75 @@ export default function ProductDetailPage() {
       loadData();
     }
   }, [id]);
+
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket || !id) return;
+
+    const refreshRelated = async () => {
+      try {
+        const bestSellers = await fetchBestSellers();
+        setRelatedProducts(bestSellers.filter(p => p._id !== id).slice(0, 4));
+      } catch (err) {
+        console.error("Error refreshing related products:", err);
+      }
+    };
+
+    const handleProductUpdated = (updatedProduct) => {
+      // Check if this matches current product ID
+      if (updatedProduct._id === id) {
+        setProduct(updatedProduct);
+      }
+      
+      // Check if it affects related products list (bestseller flag changed)
+      setRelatedProducts((prevRelated) => {
+        const existingProduct = prevRelated.find((p) => p._id === updatedProduct._id);
+        const flagChanged = existingProduct 
+          ? existingProduct.isBestSeller !== updatedProduct.isBestSeller 
+          : updatedProduct.isBestSeller;
+
+        if (flagChanged) {
+          refreshRelated();
+          return prevRelated;
+        }
+
+        return prevRelated.map((p) => (p._id === updatedProduct._id ? updatedProduct : p));
+      });
+    };
+
+    const handleProductDeleted = (deletedProductId) => {
+      // If the current product was deleted, set error
+      if (deletedProductId === id) {
+        setError("This product is no longer available in the temple catalog.");
+      }
+      
+      // Filter out of related products and refresh to fill empty slots
+      setRelatedProducts((prevRelated) => {
+        const exists = prevRelated.some((p) => p._id === deletedProductId);
+        if (exists) {
+          refreshRelated();
+        }
+        return prevRelated.filter((p) => p._id !== deletedProductId);
+      });
+    };
+
+    const handleProductCreated = (newProduct) => {
+      if (newProduct.isBestSeller && newProduct._id !== id) {
+        refreshRelated();
+      }
+    };
+
+    socket.on("productUpdated", handleProductUpdated);
+    socket.on("productDeleted", handleProductDeleted);
+    socket.on("productCreated", handleProductCreated);
+
+    return () => {
+      socket.off("productUpdated", handleProductUpdated);
+      socket.off("productDeleted", handleProductDeleted);
+      socket.off("productCreated", handleProductCreated);
+    };
+  }, [socket, id]);
 
   const handleAddToCart = async () => {
     if (!user) {

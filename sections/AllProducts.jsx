@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { fetchProducts } from "@/utils/api";
 import ProductCard from "@/components/ProductCard";
+import { useSocket } from "@/context/SocketContext";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -13,6 +14,7 @@ const fadeInUp = {
 export default function AllProducts() {
   const [products, setProducts] = useState(null);
   const [error, setError] = useState(false);
+  const socket = useSocket();
 
   useEffect(() => {
     const getProducts = async () => {
@@ -27,6 +29,42 @@ export default function AllProducts() {
     };
     getProducts();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleProductCreated = (newProduct) => {
+      setProducts((prevProducts) => {
+        if (!prevProducts) return prevProducts;
+        if (prevProducts.some((p) => p._id === newProduct._id)) return prevProducts;
+        return [...prevProducts, newProduct];
+      });
+    };
+
+    const handleProductUpdated = (updatedProduct) => {
+      setProducts((prevProducts) => {
+        if (!prevProducts) return prevProducts;
+        return prevProducts.map((p) => (p._id === updatedProduct._id ? updatedProduct : p));
+      });
+    };
+
+    const handleProductDeleted = (deletedProductId) => {
+      setProducts((prevProducts) => {
+        if (!prevProducts) return prevProducts;
+        return prevProducts.filter((p) => p._id !== deletedProductId);
+      });
+    };
+
+    socket.on("productCreated", handleProductCreated);
+    socket.on("productUpdated", handleProductUpdated);
+    socket.on("productDeleted", handleProductDeleted);
+
+    return () => {
+      socket.off("productCreated", handleProductCreated);
+      socket.off("productUpdated", handleProductUpdated);
+      socket.off("productDeleted", handleProductDeleted);
+    };
+  }, [socket]);
 
   if (error) {
     return (

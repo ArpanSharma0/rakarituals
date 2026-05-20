@@ -2,6 +2,7 @@ import { Lato, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { SocketProvider } from "@/context/SocketContext";
 
 const lato = Lato({
   subsets: ["latin"],
@@ -29,13 +30,15 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${lato.variable} ${cormorant.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className="bg-primary-background text-text font-sans antialiased overflow-x-hidden relative" suppressHydrationWarning>
         <AuthProvider>
-          <CartProvider>
-            {/* ATMOSPHERIC OVERLAYS */}
-            <div className="grain-overlay"></div>
-            <div className="ambient-light"></div>
-            
-            {children}
-          </CartProvider>
+          <SocketProvider>
+            <CartProvider>
+              {/* ATMOSPHERIC OVERLAYS */}
+              <div className="grain-overlay"></div>
+              <div className="ambient-light"></div>
+              
+              {children}
+            </CartProvider>
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>

@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchProducts, deleteProduct, updateProduct } from "@/utils/api";
+import { useSocket } from "@/context/SocketContext";
 
 const LoadingSpinner = ({ size = "w-4 h-4", color = "border-white" }) => (
   <div className={`${size} border-2 ${color} border-t-transparent rounded-full animate-spin`}></div>
@@ -132,6 +133,8 @@ export default function AdminProductsPage() {
     }
   };
 
+  const socket = useSocket();
+
   useEffect(() => {
     loadProducts();
 
@@ -139,6 +142,57 @@ export default function AdminProductsPage() {
     const interval = setInterval(refreshProducts, 120000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleProductCreated = (newProduct) => {
+      setProducts((prevProducts) => {
+        if (prevProducts.some((p) => p._id === newProduct._id)) return prevProducts;
+        return [newProduct, ...prevProducts];
+      });
+      showNotification(`New manifestation ${newProduct.name} materialized.`);
+    };
+
+    const handleProductUpdated = (updatedProduct) => {
+      setProducts((prevProducts) => {
+        const existingProduct = prevProducts.find((p) => p._id === updatedProduct._id);
+        if (existingProduct) {
+          const isDifferent = 
+            existingProduct.name !== updatedProduct.name ||
+            existingProduct.price !== updatedProduct.price ||
+            existingProduct.countInStock !== updatedProduct.countInStock ||
+            existingProduct.isBestSeller !== updatedProduct.isBestSeller ||
+            existingProduct.image !== updatedProduct.image;
+          
+          if (isDifferent) {
+            showNotification(`Manifestation ${updatedProduct.name} updated.`);
+          }
+        }
+        return prevProducts.map((p) => (p._id === updatedProduct._id ? updatedProduct : p));
+      });
+    };
+
+    const handleProductDeleted = (deletedProductId) => {
+      setProducts((prevProducts) => {
+        const deletedProduct = prevProducts.find((p) => p._id === deletedProductId);
+        if (deletedProduct) {
+          showNotification(`${deletedProduct.name} has been removed from sacred stock.`);
+        }
+        return prevProducts.filter((p) => p._id !== deletedProductId);
+      });
+    };
+
+    socket.on("productCreated", handleProductCreated);
+    socket.on("productUpdated", handleProductUpdated);
+    socket.on("productDeleted", handleProductDeleted);
+
+    return () => {
+      socket.off("productCreated", handleProductCreated);
+      socket.off("productUpdated", handleProductUpdated);
+      socket.off("productDeleted", handleProductDeleted);
+    };
+  }, [socket]);
 
   const handleDelete = async (id, name) => {
     try {

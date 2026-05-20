@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { fetchBestSellers } from "@/utils/api";
 import ProductCard from "@/components/ProductCard";
+import { useSocket } from "@/context/SocketContext";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -22,8 +23,8 @@ export default function HeroSequence() {
   const [bestSellers, setBestSellers] = useState(null);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    const getBestSellers = async () => {
+  const refreshBestSellers = async () => {
+    try {
       const data = await fetchBestSellers();
       if (data && Array.isArray(data.products)) {
         setBestSellers(data.products.slice(0, 4));
@@ -32,9 +33,66 @@ export default function HeroSequence() {
       } else {
         setError(true);
       }
-    };
-    getBestSellers();
+    } catch (err) {
+      console.error("Error refreshing best sellers:", err);
+      setError(true);
+    }
+  };
+
+  useEffect(() => {
+    refreshBestSellers();
   }, []);
+
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleProductUpdated = (updatedProduct) => {
+      setBestSellers((prevBestSellers) => {
+        if (!prevBestSellers) return prevBestSellers;
+
+        const existingProduct = prevBestSellers.find((p) => p._id === updatedProduct._id);
+        const flagChanged = existingProduct 
+          ? existingProduct.isBestSeller !== updatedProduct.isBestSeller 
+          : updatedProduct.isBestSeller;
+
+        if (flagChanged) {
+          refreshBestSellers();
+          return prevBestSellers;
+        }
+
+        return prevBestSellers.map((p) => (p._id === updatedProduct._id ? updatedProduct : p));
+      });
+    };
+
+    const handleProductDeleted = (deletedProductId) => {
+      setBestSellers((prevBestSellers) => {
+        if (!prevBestSellers) return prevBestSellers;
+        const exists = prevBestSellers.some((p) => p._id === deletedProductId);
+        if (exists) {
+          refreshBestSellers();
+        }
+        return prevBestSellers.filter((p) => p._id !== deletedProductId);
+      });
+    };
+
+    const handleProductCreated = (newProduct) => {
+      if (newProduct.isBestSeller) {
+        refreshBestSellers();
+      }
+    };
+
+    socket.on("productUpdated", handleProductUpdated);
+    socket.on("productDeleted", handleProductDeleted);
+    socket.on("productCreated", handleProductCreated);
+
+    return () => {
+      socket.off("productUpdated", handleProductUpdated);
+      socket.off("productDeleted", handleProductDeleted);
+      socket.off("productCreated", handleProductCreated);
+    };
+  }, [socket]);
 
   // Framer Motion Scroll Tracking
   const { scrollYProgress } = useScroll({

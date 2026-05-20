@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { getAllOrders, updateOrderDeliveryStatus } from "@/utils/api";
+import { getAllOrders, updateOrderDeliveryStatus, updateOrderPaymentStatus } from "@/utils/api";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSocket } from "@/context/SocketContext";
 
 const LoadingSpinner = ({ size = "w-6 h-6", color = "border-[#b89b5e]" }) => (
   <div className={`${size} border-2 ${color} border-t-transparent rounded-full animate-spin`}></div>
@@ -51,6 +52,35 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleOrderCreated = (newOrder) => {
+      setOrders((prevOrders) => {
+        if (prevOrders.some((o) => o._id === newOrder._id)) return prevOrders;
+        return [newOrder, ...prevOrders];
+      });
+      showNotification("success", `New Order Placed: #${newOrder._id?.slice(-8).toUpperCase()} by ${newOrder.user?.name || "Guest"}`);
+    };
+
+    const handleOrderUpdated = (updatedOrder) => {
+      setOrders((prevOrders) =>
+        prevOrders.map((ord) => (ord._id === updatedOrder._id ? updatedOrder : ord))
+      );
+      showNotification("success", `Order #${updatedOrder._id?.slice(-8).toUpperCase()} updated: ${updatedOrder.deliveryStatus}`);
+    };
+
+    socket.on("orderCreated", handleOrderCreated);
+    socket.on("orderUpdated", handleOrderUpdated);
+
+    return () => {
+      socket.off("orderCreated", handleOrderCreated);
+      socket.off("orderUpdated", handleOrderUpdated);
+    };
+  }, [socket]);
+
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       setUpdatingId(orderId);
@@ -65,6 +95,25 @@ export default function AdminOrdersPage() {
     } catch (error) {
       console.error("Error updating order status:", error);
       showNotification("error", error.message || "Failed to update order status");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleTogglePaid = async (orderId, currentPaidStatus) => {
+    try {
+      setUpdatingId(orderId);
+      const updatedOrder = await updateOrderPaymentStatus(orderId, !currentPaidStatus);
+      
+      // Update local state
+      setOrders((prevOrders) =>
+        prevOrders.map((ord) => (ord._id === orderId ? { ...ord, ...updatedOrder } : ord))
+      );
+      
+      showNotification("success", `Order payment status marked as ${!currentPaidStatus ? 'Paid' : 'Unpaid'} successfully!`);
+    } catch (error) {
+      console.error("Error updating order payment status:", error);
+      showNotification("error", error.message || "Failed to update payment status");
     } finally {
       setUpdatingId(null);
     }
@@ -348,12 +397,26 @@ export default function AdminOrdersPage() {
                     {/* Price and Payment status */}
                     <td className="py-6 px-6 space-y-1.5">
                       <p className="font-bold text-[#2b2622] text-sm">₹{order.totalPrice?.toFixed(2)}</p>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 rounded-full ${order.isPaid ? 'bg-green-500' : 'bg-amber-500'}`} />
-                        <span className={`text-[9px] font-black uppercase tracking-widest ${order.isPaid ? 'text-green-600' : 'text-amber-600'}`}>
-                          {order.isPaid ? "Paid" : "Unpaid"}
-                        </span>
-                      </div>
+                      {order.paymentMethod === 'COD' ? (
+                        <button
+                          onClick={() => handleTogglePaid(order._id, order.isPaid)}
+                          disabled={updatingId === order._id}
+                          className="flex items-center gap-1.5 hover:bg-[#b89b5e]/5 px-2 py-1 rounded-xl border border-[#dcd4cb]/20 hover:border-[#b89b5e] transition-all cursor-pointer group"
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${order.isPaid ? 'bg-green-500' : 'bg-amber-500'}`} />
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${order.isPaid ? 'text-green-600' : 'text-amber-600'} group-hover:text-[#b89b5e]`}>
+                            {order.isPaid ? "Paid" : "Unpaid"}
+                          </span>
+                          <span className="text-[7px] text-[#6f6a65]/40 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest ml-1 font-bold">Toggle</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-1.5 px-2 py-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${order.isPaid ? 'bg-green-500' : 'bg-amber-500'}`} />
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${order.isPaid ? 'text-green-600' : 'text-amber-600'}`}>
+                            {order.isPaid ? "Paid" : "Unpaid"}
+                          </span>
+                        </div>
+                      )}
                       <span className={`inline-block text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border whitespace-nowrap ${
                         order.paymentMethod === 'COD'
                           ? 'bg-orange-50 text-orange-600 border-orange-200/50'

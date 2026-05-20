@@ -167,6 +167,13 @@ export const updateOrderDeliveryStatus = async (orderId, deliveryStatus) => {
   });
 };
 
+export const updateOrderPaymentStatus = async (orderId, isPaid) => {
+  return apiFetch(`/api/orders/${orderId}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ isPaid }),
+  });
+};
+
 export const cancelOrderAPI = async (orderId, cancelData) => {
   return apiFetch(`/api/orders/${orderId}/cancel`, {
     method: "PUT",

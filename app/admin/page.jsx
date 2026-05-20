@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { fetchProducts, getAllOrders } from "@/utils/api";
+import { useSocket } from "@/context/SocketContext";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -30,6 +31,33 @@ export default function AdminDashboard() {
     };
     loadData();
   }, []);
+
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleOrderCreated = (newOrder) => {
+      setOrders((prevOrders) => {
+        if (prevOrders.some((o) => o._id === newOrder._id)) return prevOrders;
+        return [newOrder, ...prevOrders];
+      });
+    };
+
+    const handleOrderUpdated = (updatedOrder) => {
+      setOrders((prevOrders) =>
+        prevOrders.map((ord) => (ord._id === updatedOrder._id ? updatedOrder : ord))
+      );
+    };
+
+    socket.on("orderCreated", handleOrderCreated);
+    socket.on("orderUpdated", handleOrderUpdated);
+
+    return () => {
+      socket.off("orderCreated", handleOrderCreated);
+      socket.off("orderUpdated", handleOrderUpdated);
+    };
+  }, [socket]);
 
   // Handle global click to close dashboard filter dropdown when clicking outside
   useEffect(() => {
