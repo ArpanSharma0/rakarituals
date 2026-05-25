@@ -253,8 +253,8 @@ export default function HeroSequence() {
     ScrollTrigger.create({
       trigger: containerRef.current,
       start: "top top",
-      end: "bottom bottom",
-      scrub: 1.5,
+      end: () => `+=${window.innerHeight * 1.2}`,
+      scrub: 0.8,
       onUpdate: (self) => {
         const progress = self.progress;
         // Map progress 0 -> 1 to frame index 0 -> 159

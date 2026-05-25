@@ -16,14 +16,16 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const isProductPage = pathname?.startsWith("/product");
+  const isHomepage = pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      const threshold = isHomepage ? window.innerHeight * 0.9 : 50;
+      setScrolled(window.scrollY > threshold);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isHomepage]);
 
   const { scrollY } = useScroll();
   const [h, setH] = useState(0);
@@ -32,8 +34,6 @@ export default function Navbar() {
   }, []);
 
   const navOpacity = useTransform(scrollY, [0.9 * h, 1.1 * h], [0, 1]);
-  
-  const isHomepage = pathname === "/";
   
   // Theme state: white/opaque for sub-pages or scrolled homepage, transparent for top of homepage
   const isWhiteNav = !isHomepage || isProductPage || scrolled;
