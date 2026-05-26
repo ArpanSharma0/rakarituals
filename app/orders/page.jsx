@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSocket } from "@/context/SocketContext";
+import Navbar from "@/components/Navbar";
+import Footer from "@/sections/Footer";
 
 export function OrdersContent({ isNested = false }) {
   const { user, loading: authLoading } = useAuth();
@@ -210,8 +212,8 @@ export function OrdersContent({ isNested = false }) {
   }
 
   return (
-    <div className={isNested ? "w-full" : "min-h-screen pt-4 pb-20 px-6 lg:px-12 bg-[#fdfaf5]"}>
-      <div className={isNested ? "w-full" : "max-w-[1440px] mx-auto w-full"}>
+    <div className={isNested ? "w-full" : "pt-28 pb-20 px-6 lg:px-12 bg-[#fdfaf5]"}>
+      <div className={isNested ? "w-full" : "max-w-[1240px] mx-auto w-full"}>
         {/* Toast Notification */}
         <AnimatePresence>
           {notification && (
@@ -258,9 +260,6 @@ export function OrdersContent({ isNested = false }) {
 
         {!isNested && (
           <>
-            <Link href="/" className="text-[10px] uppercase tracking-widest text-[#b89b5e] font-bold hover:underline mb-6 inline-block">
-              ← Back to Home
-            </Link>
 
             {/* Header Title block */}
             <motion.div
@@ -865,7 +864,13 @@ export default function OrdersPage() {
         </div>
       </div>
     }>
-      <OrdersContent />
+      <div className="bg-[#fdfaf5] min-h-screen flex flex-col justify-between">
+        <Navbar />
+        <main className="flex-grow">
+          <OrdersContent />
+        </main>
+        <Footer />
+      </div>
     </Suspense>
   );
 }

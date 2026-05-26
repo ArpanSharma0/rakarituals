@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchProductById, fetchBestSellers } from "@/utils/api";
+import { fetchProductById, fetchBestSellers, createProductReview } from "@/utils/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useWishlist } from "@/context/WishlistContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/sections/Footer";
 import ProductCard from "@/components/ProductCard";
@@ -36,7 +37,7 @@ const TrustElements = () => (
 const Skeleton = () => (
   <div className="min-h-screen bg-[#f7f6f1] pt-4 pb-20 px-6 sm:px-12 lg:px-24 animate-pulse">
     <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16">
-      <div className="w-full lg:w-1/2 aspect-square rounded-[40px] bg-[#e8e1d9]"></div>
+      <div className="w-full lg:w-1/2 aspect-square rounded-2xl lg:rounded-[40px] bg-[#e8e1d9]"></div>
       <div className="w-full lg:w-1/2 flex flex-col gap-6">
         <div className="h-4 w-24 bg-[#e8e1d9] rounded"></div>
         <div className="h-16 w-full bg-[#e8e1d9] rounded"></div>
@@ -62,6 +63,116 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [success, setSuccess] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+
+  // Review states
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState(null);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+
+  const { toggleWishlist, wishlistItems } = useWishlist();
+  const isInWishlist = wishlistItems.some((item) => (item._id || item.id) === (product?._id || product?.id));
+
+  const handleWishlistToggle = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (product) {
+      toggleWishlist(product._id || product.id);
+    }
+  };
+
+  const reloadProduct = async () => {
+    try {
+      const productData = await fetchProductById(id);
+      setProduct(productData);
+    } catch (err) {
+      console.error("Error reloading product details:", err);
+    }
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setReviewError(null);
+    setSubmittingReview(true);
+    try {
+      await createProductReview(product._id || product.id, { rating: reviewRating, comment: reviewComment });
+      setReviewSuccess(true);
+      setReviewComment("");
+      setReviewRating(5);
+      await reloadProduct();
+    } catch (err) {
+      setReviewError(err.message || "Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const roundedRating = Math.round(rating);
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <span key={i} className={i <= roundedRating ? "text-[#FB9E5B]" : "text-[#e9e9e9]"}>
+          ★
+        </span>
+      );
+    }
+    return stars;
+  };
+
+  const scrollRef = useRef(null);
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef(null);
+
+  const images = product?.images && product.images.length > 0 ? product.images : (product ? [product.image] : []);
+
+  const handleScroll = (e) => {
+    if (isScrollingRef.current) return;
+    const container = e.target;
+    const width = container.offsetWidth;
+    if (width <= 0) return;
+    const scrollLeft = container.scrollLeft;
+    const index = Math.round(scrollLeft / width);
+    if (index !== activeImage && index >= 0 && index < images.length) {
+      setActiveImage(index);
+    }
+  };
+
+  const handleNextImage = () => {
+    if (images.length <= 1) return;
+    const nextIdx = (activeImage + 1) % images.length;
+    setActiveImage(nextIdx);
+  };
+
+  const handlePrevImage = () => {
+    if (images.length <= 1) return;
+    const prevIdx = (activeImage - 1 + images.length) % images.length;
+    setActiveImage(prevIdx);
+  };
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      const container = scrollRef.current;
+      const targetLeft = activeImage * container.offsetWidth;
+      if (Math.abs(container.scrollLeft - targetLeft) > 10) {
+        isScrollingRef.current = true;
+        container.scrollTo({
+          left: targetLeft,
+          behavior: 'smooth',
+        });
+        if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = setTimeout(() => {
+          isScrollingRef.current = false;
+        }, 500);
+      }
+    }
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, [activeImage]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -196,231 +307,441 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="bg-[#f7f6f1] min-h-screen selection:bg-[#b89b5e]/20">
+    <div className="bg-[var(--bg-primary)] min-h-screen selection:bg-[var(--accent)]/20">
       <Navbar />
       
       <main className="pt-28 pb-40 px-6 sm:px-12">
         <div className="max-w-[1240px] mx-auto">
-          {/* Main Symmetrical Grid based on Wireframe Proportions */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-16 items-start">
+          {/* Main 2-Column Product Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_clamp(360px,42%,460px)] gap-12 lg:gap-16 items-start">
             
-            {/* Gallery Unit (Wireframe "Frame" - Thumbnails + Hero) */}
+            {/* Gallery Unit */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full flex flex-row gap-8 items-start"
+              className="w-full"
             >
-              {/* Vertical Thumbnails (Inside the Gallery Unit) */}
-              <div className="hidden lg:flex flex-col gap-3 w-20 sticky top-40">
-                {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, idx) => (
-                  <motion.div 
-                    key={`thumb-desktop-${idx}`} 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setActiveImage(idx)}
-                    className={`w-20 h-20 rounded-3xl border-2 transition-all cursor-pointer overflow-hidden p-2 bg-white flex items-center justify-center ${
-                      activeImage === idx ? "border-[#2b2622] shadow-xl ring-2 ring-[#2b2622]/5" : "border-[#dcd4cb]/10 opacity-30 hover:opacity-80"
-                    }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-contain" />
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Main Product Hero (Centered in Frame) */}
-              <div className="flex-1 bg-white/30 rounded-[40px] p-8 border border-[#dcd4cb]/30 shadow-inner group relative h-[400px] lg:h-[550px] flex items-center justify-center">
-                <AnimatePresence mode="wait">
-                  <motion.img 
-                    key={activeImage}
-                    initial={{ opacity: 0, scale: 0.85, filter: "blur(15px)" }}
-                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, scale: 1.15, filter: "blur(15px)" }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    layoutId={activeImage === 0 ? `product-image-${product._id}` : undefined}
-                    src={product.images && product.images.length > 0 ? product.images[activeImage] : product.image} 
-                    alt={product.name}
-                    className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(43,38,34,0.15)]"
-                  />
-                </AnimatePresence>
-
-                {/* Mobile Thumbnails (Horizontal Bottom) */}
-                <div className="absolute bottom-6 left-0 right-0 flex lg:hidden justify-center gap-3 px-4">
-                  {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, idx) => (
+              {/* Mobile view: Native Snap Scroll Row (Amazon-style) */}
+              <div 
+                className="lg:hidden bg-white rounded-sm p-4 border border-[#e9e9e9] relative h-[400px] flex items-center justify-center overflow-hidden"
+              >
+                <div 
+                  ref={scrollRef}
+                  onScroll={handleScroll}
+                  className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+                >
+                  {images.map((img, idx) => (
                     <div 
-                      key={`thumb-mobile-${idx}`} 
-                      onClick={() => setActiveImage(idx)}
-                      className={`shrink-0 w-14 h-14 rounded-2xl border transition-all p-1.5 bg-white shadow-lg ${
-                        activeImage === idx ? "border-[#2b2622] scale-110" : "border-[#dcd4cb]/30 opacity-60"
-                      }`}
+                      key={`mobile-image-${idx}`}
+                      className="w-full h-full shrink-0 snap-center flex items-center justify-center"
                     >
-                      <img src={img} alt="" className="w-full h-full object-contain" />
+                      <img 
+                        src={img} 
+                        alt={product.name} 
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                   ))}
                 </div>
+
+                {/* Mobile Pagination Dots (Amazon-style) */}
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+                    {images.map((_, idx) => (
+                      <button
+                        key={`dot-${idx}`}
+                        onClick={() => setActiveImage(idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          activeImage === idx ? "bg-[#151515] scale-125" : "bg-[#151515]/20"
+                        }`}
+                        aria-label={`Go to image ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop view: Flat Grid Layout of all images */}
+              <div className="hidden lg:grid grid-cols-2 gap-2">
+                {images.map((img, idx) => (
+                  <div 
+                    key={`desktop-image-${idx}`}
+                    className={`bg-white border border-[#e9e9e9] p-4 flex items-center justify-center h-[350px] overflow-hidden rounded-sm ${
+                      images.length === 1 ? "col-span-2 h-[550px]" : ""
+                    }`}
+                  >
+                    <img 
+                      src={img} 
+                      alt={`${product.name} - view ${idx + 1}`} 
+                      className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
+                    />
+                  </div>
+                ))}
               </div>
             </motion.div>
 
-            {/* Information Panel (Strict Box-based UI) */}
+            {/* Information Panel */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-              className="lg:sticky lg:top-28 flex flex-col gap-4"
+              className="lg:sticky lg:top-28 flex flex-col"
             >
-              {/* BOX 1: Title & Main Category (Full Width) */}
-              <div className="bg-white border border-[#dcd4cb]/50 rounded-[30px] p-6 shadow-sm space-y-2">
-                <nav className="flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-[#6f6a65]/50">
-                  <button onClick={() => router.push("/")} className="hover:text-[#2b2622] transition-colors">Temple Collection</button>
-                  <span className="opacity-10">•</span>
-                  <span className="text-[#b89b5e]">{product.category || "Ritual Piece"}</span>
-                </nav>
-                <h1 className="text-4xl lg:text-5xl font-bold tracking-tighter text-[#2b2622] leading-tight">
-                  {product.name}
-                </h1>
+              {/* Category / Vendor */}
+              <div className="text-[10px] uppercase font-bold tracking-[0.25em] text-[var(--accent)] mb-2 font-body">
+                Temple Collection • {product.category || "Ritual Piece"}
               </div>
 
-              {/* BOX 2: Essential Value & Story (Medium Focus Box) */}
-              <div className="bg-white/60 backdrop-blur-xl border border-[#dcd4cb]/40 rounded-[30px] p-6 space-y-4">
-                <div className="flex items-baseline justify-between gap-4">
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/60">Sacred Contribution</span>
-                    <p className="text-3xl lg:text-4xl font-bold text-[#2b2622] tracking-tighter font-serif">₹{product.price.toLocaleString()}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/40 block mb-1">Estimated Dispatch</span>
-                    <p className="text-[10px] font-bold text-[#2b2622]/60">Within 48 Temple Hours</p>
-                  </div>
-                </div>
-                <p className="text-[#6f6a65] text-xs leading-relaxed font-light italic opacity-80 border-t border-[#dcd4cb]/30 pt-4">
-                  "{product.description}"
+              {/* Title */}
+              <h1 className="text-3xl lg:text-4xl font-bold uppercase tracking-tight text-[var(--text-heading)] mb-3 font-heading leading-tight">
+                {product.name}
+              </h1>
+
+              {/* Price Container */}
+              <div className="mb-4 pb-4 border-b border-[#e9e9e9]">
+                <p className="text-2xl font-bold text-[var(--text-heading)] tracking-tighter font-serif">
+                  ₹{product.price.toLocaleString("en-IN")}
+                </p>
+                <p className="text-[10px] text-[var(--text-body)] opacity-70 mt-1">
+                  Tax included. Shipping calculated at checkout.
                 </p>
               </div>
 
-              {/* INTERACTION ROW: BOX 3 & BOX 4 (Symmetrical Half Boxes) */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* BOX 3: Quantity */}
-                <div className="bg-white border border-[#dcd4cb]/60 rounded-[24px] p-4 flex flex-col items-center gap-2 group hover:border-[#2b2622]/20 transition-colors">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6f6a65]/60">Divine Count</span>
-                  <div className="flex items-center justify-between w-full px-1">
+              {/* Ratings Stars link that scrolls to reviews section */}
+              <a 
+                href="#reviews-section" 
+                className="flex items-center gap-2 mb-6 cursor-pointer hover:opacity-85 transition-opacity"
+              >
+                <div className="flex text-sm text-[#FB9E5B]">
+                  {renderStars(product.rating || 0)}
+                </div>
+                <span className="text-[10px] font-bold text-[var(--text-body)]">
+                  {(product.rating || 0).toFixed(1)} ({product.numReviews || 0} review{product.numReviews !== 1 ? 's' : ''})
+                </span>
+              </a>
+
+              {/* Interaction Form: Quantity & Action Buttons */}
+              <div className="flex flex-col gap-4 mb-8">
+                {/* Quantity Selector & Status */}
+                <div className="flex items-center gap-4">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--text-body)]">Quantity:</span>
+                  <div className="flex items-center border border-[#e9e9e9] rounded-sm bg-white overflow-hidden h-10">
                     <button 
                       onClick={() => adjustQuantity(-1)}
-                      className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#f7f6f1] text-[#2b2622] transition-transform hover:scale-110 active:scale-90 disabled:opacity-20"
+                      className="w-10 h-full flex items-center justify-center text-[var(--text-heading)] hover:bg-[#e9e9e9]/35 transition-colors disabled:opacity-20"
                       disabled={quantity <= 1}
                     >
-                      <span className="text-lg">−</span>
+                      −
                     </button>
-                    <span className="font-bold text-[#2b2622] text-lg font-mono">{quantity}</span>
+                    <span className="w-10 text-center font-bold text-[var(--text-heading)] text-xs font-mono">{quantity}</span>
                     <button 
                       onClick={() => adjustQuantity(1)}
-                      className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#f7f6f1] text-[#2b2622] transition-transform hover:scale-110 active:scale-90 disabled:opacity-20"
+                      className="w-10 h-full flex items-center justify-center text-[var(--text-heading)] hover:bg-[#e9e9e9]/35 transition-colors disabled:opacity-20"
                       disabled={quantity >= product.countInStock}
                     >
-                      <span className="text-lg">+</span>
+                      +
                     </button>
                   </div>
-                </div>
-
-                {/* BOX 4: Ritual Availability */}
-                <div className="bg-[#2b2622] rounded-[24px] p-4 flex flex-col items-center justify-center gap-2 text-center shadow-xl">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Temple Status</span>
-                  <div className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                  
+                  {/* Availability Badge */}
+                  <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ml-auto ${
                     product.countInStock > 0 
-                    ? 'text-[#b89b5e] border-[#b89b5e]/20 bg-[#b89b5e]/5' 
-                    : 'text-rose-400 border-rose-400/20 bg-rose-400/5'
+                    ? 'text-[var(--accent)] border-[var(--accent)]/20 bg-[var(--accent)]/5' 
+                    : 'text-red-400 border-red-400/20 bg-red-400/5'
                   }`}>
                     {product.countInStock > 0 ? "Ritual Ready" : "Departed"}
-                  </div>
+                  </span>
+                </div>
+
+                {/* Primary Checkout Actions */}
+                <div className="flex gap-3">
+                  <button 
+                    onClick={handleAddToCart}
+                    disabled={adding || product.countInStock <= 0}
+                    className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm duration-300 ${
+                      success 
+                      ? 'bg-emerald-600 text-white' 
+                      : 'bg-[#151515] text-white hover:bg-[var(--accent)]'
+                    }`}
+                  >
+                    <AnimatePresence mode="wait">
+                      {adding ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                          Adding...
+                        </span>
+                      ) : success ? (
+                        <span>Item Added ✨</span>
+                      ) : (
+                        <span>Add to Cart</span>
+                      )}
+                    </AnimatePresence>
+                  </button>
+
+                  <button
+                    onClick={handleWishlistToggle}
+                    className="w-12 h-12 shrink-0 border border-[#e9e9e9] rounded-sm bg-white hover:border-[#151515] flex items-center justify-center transition-all active:scale-95 group/wishlist cursor-pointer"
+                    title={isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                  >
+                    <svg
+                      className={`w-5 h-5 transition-transform group-hover/wishlist:scale-110 ${isInWishlist ? 'text-[var(--accent)] fill-[var(--accent)]' : 'text-[#6f6a65] fill-none'}`}
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
-              {/* BOX 5: Main Ritual CTA (Full Width) */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-[#b89b5e]/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                <button 
-                  onClick={handleAddToCart}
-                  disabled={adding || product.countInStock <= 0}
-                  className={`relative w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] text-[10px] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 overflow-hidden ${
-                    success ? 'bg-emerald-600' : 'bg-[#2b2622] text-white hover:shadow-[0_20px_40px_rgba(43,38,34,0.3)]'
-                  }`}
-                >
-                  <AnimatePresence mode="wait">
-                    {adding ? (
-                      <motion.span 
-                        key="adding"
-                        initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}
-                        className="flex items-center justify-center gap-4"
-                      >
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Invoking...
-                      </motion.span>
-                    ) : success ? (
-                      <motion.span 
-                        key="success"
-                        initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                        className="flex items-center justify-center gap-3"
-                      >
-                        Ritual Prepared ✨
-                      </motion.span>
-                    ) : (
-                      <motion.span 
-                        key="default"
-                        className="flex items-center justify-center gap-3"
-                      >
-                        Begin the Ritual
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </button>
+              {/* Description */}
+              <div className="text-xs leading-relaxed text-[var(--text-body)] font-light italic mb-8 border-t border-[#e9e9e9] pt-6">
+                "{product.description}"
               </div>
 
+              {/* Accordions */}
+              <div className="border-t border-[#e9e9e9] mt-4">
+                <details className="group border-b border-[#e9e9e9] py-4 cursor-pointer">
+                  <summary className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-[var(--text-heading)] select-none list-none [&::-webkit-details-marker]:hidden">
+                    <span>The Essence &amp; Narrative</span>
+                    <span className="relative w-3 h-3 flex items-center justify-center">
+                      <span className="absolute w-3 h-[1.5px] bg-[var(--text-heading)]"></span>
+                      <span className="absolute w-[1.5px] h-3 bg-[var(--text-heading)] transition-transform duration-300 group-open:rotate-90 group-open:opacity-0"></span>
+                    </span>
+                  </summary>
+                  <div className="mt-4 text-xs leading-relaxed text-[var(--text-body)] font-light">
+                    <p>
+                      Crafted by master artisans within the Rakarituals Collective, this limited piece serves as a vessel for focused intention. It is not merely an object, but a milestone in your spiritual architecture.
+                    </p>
+                  </div>
+                </details>
 
-              {/* Integrated Trust Element Footer */}
-              <div className="mt-4 opacity-60 hover:opacity-100 transition-opacity">
-                <TrustElements />
+                <details className="group border-b border-[#e9e9e9] py-4 cursor-pointer">
+                  <summary className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-[var(--text-heading)] select-none list-none [&::-webkit-details-marker]:hidden">
+                    <span>Maintenance Ceremony</span>
+                    <span className="relative w-3 h-3 flex items-center justify-center">
+                      <span className="absolute w-3 h-[1.5px] bg-[var(--text-heading)]"></span>
+                      <span className="absolute w-[1.5px] h-3 bg-[var(--text-heading)] transition-transform duration-300 group-open:rotate-90 group-open:opacity-0"></span>
+                    </span>
+                  </summary>
+                  <div className="mt-4 text-xs leading-relaxed text-[var(--text-body)] font-light">
+                    <p>
+                      Handle only with cleansed hands. To preserve the sacred integrity, ensure the object stays within its designated sanctuary space, away from active currents.
+                    </p>
+                  </div>
+                </details>
+
+                <details className="group border-b border-[#e9e9e9] py-4 cursor-pointer">
+                  <summary className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-[var(--text-heading)] select-none list-none [&::-webkit-details-marker]:hidden">
+                    <span>Vessel Specifications</span>
+                    <span className="relative w-3 h-3 flex items-center justify-center">
+                      <span className="absolute w-3 h-[1.5px] bg-[var(--text-heading)]"></span>
+                      <span className="absolute w-[1.5px] h-3 bg-[var(--text-heading)] transition-transform duration-300 group-open:rotate-90 group-open:opacity-0"></span>
+                    </span>
+                  </summary>
+                  <div className="mt-4 text-xs leading-relaxed text-[var(--text-body)] font-light">
+                    <ul className="space-y-2 font-mono uppercase text-[10px]">
+                      <li className="flex justify-between border-b border-[#e9e9e9]/60 pb-1">
+                        <span>Aura Grade</span>
+                        <span className="font-bold text-[var(--accent)]">Ritual Elite</span>
+                      </li>
+                      <li className="flex justify-between border-b border-[#e9e9e9]/60 pb-1">
+                        <span>Harmonic Origin</span>
+                        <span className="font-bold">Sacred Valley</span>
+                      </li>
+                      <li className="flex justify-between pb-1">
+                        <span>Weight Class</span>
+                        <span className="font-bold">Harmonious</span>
+                      </li>
+                    </ul>
+                  </div>
+                </details>
+
+                <details className="group border-b border-[#e9e9e9] py-4 cursor-pointer">
+                  <summary className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-[var(--text-heading)] select-none list-none [&::-webkit-details-marker]:hidden">
+                    <span>Trusted Experience</span>
+                    <span className="relative w-3 h-3 flex items-center justify-center">
+                      <span className="absolute w-3 h-[1.5px] bg-[var(--text-heading)]"></span>
+                      <span className="absolute w-[1.5px] h-3 bg-[var(--text-heading)] transition-transform duration-300 group-open:rotate-90 group-open:opacity-0"></span>
+                    </span>
+                  </summary>
+                  <div className="mt-4">
+                    <TrustElements />
+                  </div>
+                </details>
               </div>
             </motion.div>
           </div>
 
-          {/* BELOW THE FOLD: Narrative Section */}
-          <div className="mt-40 grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-24 items-center">
-            <div className="space-y-12">
-              <div className="space-y-6">
-                <span className="text-[#b89b5e] font-black uppercase tracking-[0.5em] text-[11px] block">Manifestation & Narrative</span>
-                <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-[#2b2622] leading-none">The Essence of {product.name}</h2>
-                <p className="text-xl text-[#6f6a65] font-light leading-relaxed max-w-3xl italic">
-                  Crafted by master artisans within the Rakarituals Collective, this limited piece serves as a vessel for focused intention. It is not merely an object, but a milestone in your spiritual architecture.
-                </p>
+
+          {/* Customer Reviews Section */}
+          <div id="reviews-section" className="mt-24 pt-16 border-t border-[#e9e9e9]">
+            <h3 className="text-xl font-bold uppercase tracking-wider text-[var(--text-heading)] mb-10 font-heading">
+              Customer Reviews
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-start">
+              {/* Review summary stats */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-5xl font-serif font-bold text-[var(--text-heading)]">
+                    {(product.rating || 0).toFixed(1)}
+                  </span>
+                  <div>
+                    <div className="flex text-base text-[#FB9E5B]">
+                      {renderStars(product.rating || 0)}
+                    </div>
+                    <p className="text-xs text-[var(--text-body)] mt-1 font-body">
+                      Based on {product.numReviews || 0} review{product.numReviews !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Rating breakdown */}
+                <div className="space-y-2 pt-4 border-t border-[#e9e9e9]/50">
+                  {[5, 4, 3, 2, 1].map(stars => {
+                    const count = (product.reviews || []).filter(r => Math.round(r.rating) === stars).length;
+                    const total = (product.reviews || []).length;
+                    const percentage = total > 0 ? (count / total) * 100 : 0;
+                    return (
+                      <div key={stars} className="flex items-center gap-3 text-xs text-[var(--text-body)]">
+                        <span className="w-12">{stars} star</span>
+                        <div className="flex-1 h-2 bg-[#e9e9e9] rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-[#FB9E5B] rounded-full" 
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="w-8 text-right">{percentage.toFixed(0)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 border-t border-[#dcd4cb] pt-12">
-                <div className="space-y-4">
-                  <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-[#2b2622]">Maintenance Ceremony</h4>
-                  <p className="text-base text-[#6f6a65] font-light leading-relaxed opacity-80">
-                    Handle only with cleansed hands. To preserve the sacred integrity, ensure the object stays within its designated sanctuary space, away from active currents.
-                  </p>
-                </div>
-                <div className="space-y-4">
-                  <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-[#2b2622]">Vessel Specifications</h4>
-                  <ul className="text-[12px] space-y-4 font-mono opacity-80 uppercase">
-                    <li className="flex justify-between border-b border-[#dcd4cb]/40 pb-2"><span>Aura Grade</span><span className="font-bold text-[#b89b5e]">Ritual Elite</span></li>
-                    <li className="flex justify-between border-b border-[#dcd4cb]/40 pb-2"><span>Harmonic Origin</span><span className="font-bold">Sacred Valley</span></li>
-                    <li className="flex justify-between border-b border-[#dcd4cb]/40 pb-2"><span>Weight Class</span><span className="font-bold">Harmonious</span></li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+              {/* Reviews List & Write Form */}
+              <div className="md:col-span-2 space-y-8">
+                {(!product.reviews || product.reviews.length === 0) ? (
+                  <div className="text-center py-10 bg-white border border-[#e9e9e9] rounded-sm p-6 text-[var(--text-body)]">
+                    <p className="text-xs font-light">No reviews yet for this product.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6 max-h-[400px] overflow-y-auto pr-4">
+                    {product.reviews.map((rev, idx) => (
+                      <div key={rev._id || idx} className="border-b border-[#e9e9e9]/60 pb-6 last:border-b-0 last:pb-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-xs font-bold text-[var(--text-heading)] uppercase tracking-wider font-body">
+                            {rev.name}
+                          </h4>
+                          <span className="text-[10px] text-[var(--text-body)] opacity-60">
+                            {new Date(rev.createdAt).toLocaleDateString('en-IN', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex text-xs text-[#FB9E5B] mb-2">
+                          {renderStars(rev.rating)}
+                        </div>
+                        <p className="text-xs text-[var(--text-body)] font-light leading-relaxed font-body">
+                          {rev.comment}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-            <div className="hidden lg:block relative group">
-              <div className="absolute -inset-4 bg-gradient-to-tr from-[#b89b5e]/10 to-transparent blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-              <div className="relative aspect-[4/5] rounded-[60px] overflow-hidden shadow-[0_40px_80px_rgba(43,38,34,0.12)]">
-                <img 
-                  src={product.images && product.images.length > 0 ? product.images[0] : product.image} 
-                  className="w-full h-full object-cover transition-transform duration-[3s] group-hover:scale-110" 
-                  alt="" 
-                />
-                <div className="absolute inset-0 bg-black/5 flex items-center justify-center p-12 text-center text-white backdrop-blur-[2px] opacity-0 hover:opacity-100 transition-opacity duration-700">
-                  <p className="italic text-2xl font-serif leading-relaxed line-clamp-4">"True luxury is found in the silence between intentions."</p>
+                {/* Submit review block */}
+                <div className="mt-8 pt-8 border-t border-[#e9e9e9]">
+                  {user ? (
+                    <div>
+                      {reviewSuccess ? (
+                        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-sm p-4 text-xs font-medium">
+                          Thank you! Your review has been submitted successfully. ✨
+                        </div>
+                      ) : (
+                        <details className="group/review-form border border-[#e9e9e9] rounded-sm bg-white overflow-hidden">
+                          <summary className="flex justify-between items-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--text-heading)] select-none list-none cursor-pointer hover:bg-neutral-50/50 [&::-webkit-details-marker]:hidden">
+                            <span>Write a review</span>
+                            <span className="relative w-3 h-3 flex items-center justify-center">
+                              <span className="absolute w-3 h-[1.5px] bg-[var(--text-heading)]"></span>
+                              <span className="absolute w-[1.5px] h-3 bg-[var(--text-heading)] transition-transform duration-300 group-open/review-form:rotate-90 group-open/review-form:opacity-0"></span>
+                            </span>
+                          </summary>
+                          <div className="p-6 border-t border-[#e9e9e9] space-y-4">
+                            {reviewError && (
+                              <div className="bg-red-50 border border-red-200 text-red-800 rounded-sm p-4 text-xs">
+                                {reviewError}
+                              </div>
+                            )}
+                            <form onSubmit={handleReviewSubmit} className="space-y-4">
+                              <div className="space-y-2">
+                                <label className="block text-[10px] uppercase font-bold tracking-wider text-[var(--text-body)]">
+                                  Rating:
+                                </label>
+                                <div className="flex gap-2">
+                                  {[1, 2, 3, 4, 5].map((stars) => (
+                                    <button
+                                      key={stars}
+                                      type="button"
+                                      onClick={() => setReviewRating(stars)}
+                                      className="text-2xl hover:scale-110 transition-transform focus:outline-none"
+                                    >
+                                      <span className={stars <= reviewRating ? "text-[#FB9E5B]" : "text-[#e9e9e9]"}>
+                                        ★
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <label htmlFor="review-comment" className="block text-[10px] uppercase font-bold tracking-wider text-[var(--text-body)]">
+                                  Review Comment:
+                                </label>
+                                <textarea
+                                  id="review-comment"
+                                  rows={4}
+                                  value={reviewComment}
+                                  onChange={(e) => setReviewComment(e.target.value)}
+                                  placeholder="Share your experience with this ritual piece..."
+                                  required
+                                  className="w-full text-xs p-3 border border-[#e9e9e9] rounded-sm focus:outline-none focus:border-[var(--accent)] font-body bg-white text-[var(--text-heading)]"
+                                ></textarea>
+                              </div>
+
+                              <button
+                                type="submit"
+                                disabled={submittingReview}
+                                className="bg-[#151515] text-white hover:bg-[var(--accent)] transition-all font-bold uppercase tracking-widest text-[10px] py-3.5 px-8 rounded-sm disabled:opacity-50"
+                              >
+                                {submittingReview ? "Submitting..." : "Submit Review"}
+                              </button>
+                            </form>
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-neutral-50 border border-[#e9e9e9] rounded-sm p-6 text-center">
+                      <p className="text-xs text-[var(--text-body)] mb-4">
+                        Only verified members of the temple can submit a review.
+                      </p>
+                      <button
+                        onClick={() => router.push(`/login?redirect=/product/${id}`)}
+                        className="bg-[#151515] text-white hover:bg-[var(--accent)] px-8 py-3.5 text-[10px] font-bold uppercase tracking-widest rounded-sm"
+                      >
+                        Sign In to Review
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -448,7 +769,7 @@ export default function ProductDetailPage() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-12">
                 {relatedProducts.map((p, idx) => (
                   <motion.div 
                     key={p._id}

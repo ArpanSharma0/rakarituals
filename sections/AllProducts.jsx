@@ -14,6 +14,7 @@ const fadeInUp = {
 export default function AllProducts() {
   const [products, setProducts] = useState(null);
   const [error, setError] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const socket = useSocket();
 
   useEffect(() => {
@@ -82,6 +83,15 @@ export default function AllProducts() {
     );
   }
 
+  // Calculate the first line count based on screen layout:
+  // - lg (Large screens): 4 columns
+  // - md (Medium screens): 3 columns
+  // - sm/xs (Mobile): 2 columns
+  // We'll show 4 by default for the first row.
+  const initialShowCount = 4;
+  const visibleProducts = isExpanded ? products : products.slice(0, initialShowCount);
+  const showViewAllButton = products.length > initialShowCount && !isExpanded;
+
   return (
     <section id="all-products" className="ritual-section bg-[#f7f6f1] section-layer">
       <div className="ritual-container">
@@ -101,7 +111,7 @@ export default function AllProducts() {
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
-          {products.map((product, index) => (
+          {visibleProducts.map((product, index) => (
             <motion.div
               key={product.id || index}
               initial="hidden"
@@ -115,18 +125,23 @@ export default function AllProducts() {
           ))}
         </div>
 
-        <motion.div 
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          variants={fadeInUp}
-          className="text-center mt-16"
-        >
-          <button className="btn-primary py-4 px-12 shadow-premium">
-            View All
-          </button>
-        </motion.div>
+        {showViewAllButton && (
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            variants={fadeInUp}
+            className="text-center mt-16"
+          >
+            <button 
+              onClick={() => setIsExpanded(true)}
+              className="btn-primary py-4 px-12 shadow-premium cursor-pointer"
+            >
+              View All
+            </button>
+          </motion.div>
+        )}
 
       </div>
     </section>

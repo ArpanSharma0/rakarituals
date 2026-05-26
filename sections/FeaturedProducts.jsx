@@ -1,20 +1,40 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 }
-};
+import Link from "next/link";
+import { fetchFeaturedProduct } from "@/utils/api";
 
 export default function FeaturedProducts() {
-  const handleScrollToProducts = () => {
-    const element = document.getElementById("all-products");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFeatured = async () => {
+      try {
+        const data = await fetchFeaturedProduct();
+        setProduct(data);
+      } catch (err) {
+        console.error("Failed to fetch featured product:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFeatured();
+  }, []);
+
+  // Don't render the section if there's no featured product or still loading
+  if (loading) {
+    return (
+      <section id="products" className="ritual-section bg-[#f7f6f1] section-layer">
+        <div className="ritual-container flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-2 border-[#b89b5e] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!product) return null;
 
   return (
     <section id="products" className="ritual-section bg-[#f7f6f1] section-layer">
@@ -26,24 +46,28 @@ export default function FeaturedProducts() {
             Featured Collection
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#2b2622]">
-            Artisanal Rituals for the Modern Soul
+            {product.name}
           </h2>
-          <p className="text-lg text-[#6f6a65] mb-10 max-w-lg">
-            Each piece in our collection is handcrafted using traditional techniques passed down through generations. Designed to ground your energy and elevate your daily rituals.
+          <p className="text-lg text-[#6f6a65] mb-6 max-w-lg">
+            {product.description}
           </p>
-          <button 
-            onClick={handleScrollToProducts}
-            className="btn-primary px-10 py-4 shadow-premium cursor-pointer"
+          <div className="flex items-baseline gap-2 mb-10">
+            <span className="text-sm font-bold text-[#b89b5e]">₹</span>
+            <span className="text-3xl font-bold text-[#2b2622] tracking-tighter">{product.price}</span>
+          </div>
+          <Link 
+            href={`/product/${product._id}`}
+            className="btn-primary px-10 py-4 shadow-premium cursor-pointer inline-block"
           >
-            View Collection
-          </button>
+            View Product
+          </Link>
         </motion.div>
 
         {/* Right Image */}
         <motion.div className="relative aspect-[4/5] bg-neutral-200 shadow-premium rounded-xl overflow-hidden group">
           <img 
-            src="/images/sample.jpg" 
-            alt="Artisanal Ritual Product" 
+            src={product.image || "/images/sample.jpg"} 
+            alt={product.name} 
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-tr from-[#e8e1d9] to-transparent mix-blend-multiply opacity-20"></div>

@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { getUserProfile, updateUserProfile, getMyOrders } from "@/utils/api";
 import { useRouter } from "next/navigation";
 import { OrdersContent } from "../orders/page";
+import Navbar from "@/components/Navbar";
+import Footer from "@/sections/Footer";
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -114,14 +116,13 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen pt-4 pb-20 bg-[#fdfcfb]">
-      <div className="ritual-container max-w-[1440px] mx-auto px-6 lg:px-12 w-full">
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
+    <div className="bg-[#fdfcfb] min-h-screen flex flex-col justify-between">
+      <Navbar />
+      <main className="flex-grow pt-28 pb-20">
+        <div className="ritual-container max-w-[1240px] mx-auto px-6 lg:px-12 w-full">
+          <div className="flex flex-col lg:flex-row gap-12 items-start">
           {/* Left Column: Fixed / Sticky Header & Tabs */}
-          <aside className="w-full lg:w-80 shrink-0 lg:sticky  space-y-6">
-            <Link href="/" className="text-[10px] uppercase tracking-widest text-[#b89b5e] font-bold hover:underline mb-2 inline-block">
-              ← Back to Home
-            </Link>
+          <aside className="w-full lg:w-80 shrink-0 lg:sticky lg:top-28 space-y-6">
             <header>
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
@@ -313,8 +314,10 @@ export default function ProfilePage() {
               </AnimatePresence>
             </div>
           </main>
+          </div>
         </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }

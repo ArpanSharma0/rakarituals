@@ -1,5 +1,5 @@
 import Navbar from "@/components/Navbar";
-import HeroSequence from "@/components/HeroSequence";
+import HeroCarousel from "@/components/HeroCarousel";
 import FeaturedProducts from "@/sections/FeaturedProducts";
 import AllProducts from "@/sections/AllProducts";
 import OurMission from "@/sections/OurMission";
@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <main>
       <Navbar />
-      <HeroSequence />
+      <HeroCarousel />
       <FeaturedProducts />
       <AllProducts />
       <OurMission />
@@ -19,3 +19,4 @@ export default function Home() {
     </main>
   );
 }
+

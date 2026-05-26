@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import { fetchBestSellers } from "@/utils/api";
 import ProductCard from "@/components/ProductCard";
 import { useSocket } from "@/context/SocketContext";
@@ -100,36 +100,40 @@ export default function HeroSequence() {
     offset: ["start start", "end end"]
   });
 
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    console.log("scrollYProgress:", latest);
+  });
+
   // Sub-elements parallax up from bottom
-  const subOpacity = useTransform(scrollYProgress, [0.05, 0.15], [0, 1]);
-  const subY = useTransform(scrollYProgress, [0.05, 0.15], [50, 0]);
+  const subOpacity = useTransform(scrollYProgress, [0.05, 0.15], [0, 1], { clamp: true });
+  const subY = useTransform(scrollYProgress, [0.05, 0.15], [50, 0], { clamp: true });
   // Fade out sub-elements before best sellers appear
-  const subFadeOut = useTransform(scrollYProgress, [0.35, 0.45], [1, 0]);
+  const subFadeOut = useTransform(scrollYProgress, [0.4, 0.48], [1, 0], { clamp: true });
 
   // Canvas Sequence Fade Out (later, after best sellers)
-  const canvasOpacity = useTransform(scrollYProgress, [0.75, 0.9], [1, 0]);
+  const canvasOpacity = useTransform(scrollYProgress, [0.85, 1.0], [1, 0], { clamp: true });
 
   // Transition Background
-  const backgroundColor = useTransform(scrollYProgress, [0.75, 0.9], ["#000000", "#f7f6f1"]);
+  const backgroundColor = useTransform(scrollYProgress, [0.85, 1.0], ["#000000", "#f7f6f1"], { clamp: true });
 
   // Morph main text (Center -> Top Left Navbar Logo)
-  const moveProgress = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
+  const moveProgress = useTransform(scrollYProgress, [0, 0.2], [0, 1], { clamp: true });
   const top = useTransform(moveProgress, p => `calc(${50 - 50 * p}% + ${36 * p}px)`); 
   const left = useTransform(moveProgress, p => `calc(${50 - 50 * p}% + ${32 * p}px)`); 
-  const x = useTransform(scrollYProgress, [0, 0.2], ["-50%", "0%"]);
-  const y = useTransform(scrollYProgress, [0, 0.2], ["-50%", "0%"]);
-  const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.3]);
-  const heroOpacity = useTransform(scrollYProgress, [0.18, 0.22], [1, 0]);
+  const x = useTransform(scrollYProgress, [0, 0.2], ["-50%", "0%"], { clamp: true });
+  const y = useTransform(scrollYProgress, [0, 0.2], ["-50%", "0%"], { clamp: true });
+  const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.3], { clamp: true });
+  const heroOpacity = useTransform(scrollYProgress, [0.18, 0.22], [1, 0], { clamp: true });
 
   // === BEST SELLERS: Parallax Slide (smooth on scroll) ===
-  const bsX = useTransform(scrollYProgress, [0.4, 0.55], [-150, 0]); // Container slide
-  const bsTitleX = useTransform(scrollYProgress, [0.4, 0.55], ["-40%", "0%"]); // Title parallax
-  const bsCardsX = useTransform(scrollYProgress, [0.4, 0.55], ["-20%", "0%"]); // Cards parallax
-  const bsOpacity = useTransform(scrollYProgress, [0.4, 0.42], [0, 1]); // Snap in quickly at start
-  const bsFadeOut = useTransform(scrollYProgress, [0.75, 0.85], [1, 0]); // Smooth slide out
+  const bsX = useTransform(scrollYProgress, [0.5, 0.65], ["-150%", "0%"], { clamp: true }); // Container slide
+  const bsTitleX = useTransform(scrollYProgress, [0.5, 0.65], ["-40%", "0%"], { clamp: true }); // Title parallax
+  const bsCardsX = useTransform(scrollYProgress, [0.5, 0.65], ["-20%", "0%"], { clamp: true }); // Cards parallax
+  const bsOpacity = useTransform(scrollYProgress, [0.5, 0.55], [0, 1], { clamp: true }); // Snap in quickly at start
+  const bsFadeOut = useTransform(scrollYProgress, [0.85, 0.92], [1, 0], { clamp: true }); // Smooth slide out
   
   // Micro Parallax for Background
-  const bgParallax = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  const bgParallax = useTransform(scrollYProgress, [0, 1], [0, -60], { clamp: true });
 
   useEffect(() => {
     // Clear any previous preloaded images to prevent duplicates (especially in React StrictMode)
@@ -253,7 +257,7 @@ export default function HeroSequence() {
     ScrollTrigger.create({
       trigger: containerRef.current,
       start: "top top",
-      end: () => `+=${window.innerHeight * 1.2}`,
+      end: "bottom bottom",
       scrub: 0.8,
       onUpdate: (self) => {
         const progress = self.progress;
@@ -280,11 +284,11 @@ export default function HeroSequence() {
   };
 
   return (
-    <motion.section ref={containerRef} style={{ backgroundColor }} className="relative w-full h-[500vh]">
+    <motion.section ref={containerRef} style={{ backgroundColor }} className="relative w-full h-[320vh]">
       <div className="sticky top-0 w-full h-screen overflow-hidden">
         
         {/* CANVAS BACKGROUND */}
-        <motion.div style={{ opacity: canvasOpacity, y: bgParallax }} className="absolute inset-0 w-full h-full z-0">
+        <motion.div style={{ opacity: canvasOpacity, y: bgParallax }} className="absolute top-0 left-0 w-full h-[calc(100%+60px)] z-0">
           <canvas 
             ref={canvasRef} 
             className="w-full h-full block scale-105"
@@ -325,7 +329,7 @@ export default function HeroSequence() {
 
         <motion.div
           style={{ 
-            x: useTransform(bsX, v => `${v}%`),
+            x: bsX,
             opacity: bsFadeOut
           }}
           className="absolute inset-0 z-30 flex items-end justify-center pb-12 pointer-events-none px-6 md:px-20"
