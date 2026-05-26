@@ -10,15 +10,15 @@ const LoadingSpinner = ({ size = "w-4 h-4", color = "border-white" }) => (
   <div className={`${size} border-2 ${color} border-t-transparent rounded-full animate-spin`}></div>
 );
 
-const ProductRow = ({ product, onDelete, onToggleBestseller, isToggling, confirmDeleteId, onConfirmDelete, onCancelDelete }) => (
+const ProductRow = ({ product, onDelete, onToggleBestseller, onToggleFeatured, isToggling, isTogglingFeatured, confirmDeleteId, onConfirmDelete, onCancelDelete }) => (
   <tr className="hover:bg-[#fcfbf9]/80 transition-all group border-b border-[#f2eee9]">
     <td className="p-8">
       <div className="flex items-center gap-6">
-        <div className="relative group/img">
+        <div className="relative group/img flex-shrink-0 w-16 h-16">
           <img 
             src={product.image || "/placeholder-product.jpg"} 
             alt={product.name}
-            className="w-16 h-16 object-cover rounded-[20px] bg-gray-100 shadow-sm transition-all duration-700 group-hover/img:scale-110 group-hover/img:rotate-2"
+            className="w-16 h-16 min-w-[64px] min-h-[64px] object-cover rounded-[20px] bg-gray-100 shadow-sm transition-all duration-700 group-hover/img:scale-110 group-hover/img:rotate-2 flex-shrink-0"
           />
           <div className="absolute inset-0 bg-[#2b2622]/10 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-[20px]"></div>
         </div>
@@ -56,6 +56,19 @@ const ProductRow = ({ product, onDelete, onToggleBestseller, isToggling, confirm
         }`}
       >
         {isToggling ? <LoadingSpinner color={product.isBestSeller ? "border-white" : "border-[#b89b5e]"} /> : (product.isBestSeller ? 'Bestseller' : 'Standard')}
+      </button>
+    </td>
+    <td className="p-8">
+      <button
+        onClick={() => onToggleFeatured(product._id, product.isFeatured)}
+        disabled={isTogglingFeatured}
+        className={`px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all border flex items-center gap-2 ${
+          product.isFeatured 
+          ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-transparent hover:text-emerald-600 shadow-[0_10px_20px_rgba(5,150,105,0.2)]' 
+          : 'bg-transparent text-[#6f6a65]/50 border-[#dcd4cb] hover:border-emerald-600 hover:text-emerald-600 hover:bg-emerald-50/5'
+        }`}
+      >
+        {isTogglingFeatured ? <LoadingSpinner color={product.isFeatured ? "border-white" : "border-emerald-600"} /> : (product.isFeatured ? 'Featured' : 'Regular')}
       </button>
     </td>
     <td className="p-8">
@@ -104,6 +117,7 @@ export default function AdminProductsPage() {
   const [filterBestseller, setFilterBestseller] = useState(false);
   const [notification, setNotification] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
+  const [togglingFeaturedId, setTogglingFeaturedId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const showNotification = (message, type = "success") => {
@@ -218,6 +232,25 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleToggleFeatured = async (id, currentStatus) => {
+    setTogglingFeaturedId(id);
+    try {
+      const newStatus = !currentStatus;
+      await updateProduct(id, { isFeatured: newStatus });
+      // Backend enforces single-featured, so reflect that locally
+      if (newStatus) {
+        setProducts(products.map(p => p._id === id ? { ...p, isFeatured: true } : { ...p, isFeatured: false }));
+      } else {
+        setProducts(products.map(p => p._id === id ? { ...p, isFeatured: false } : p));
+      }
+      showNotification(newStatus ? "Product set as Featured." : "Featured status removed.");
+    } catch (err) {
+      showNotification(err.message, "error");
+    } finally {
+      setTogglingFeaturedId(null);
+    }
+  };
+
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -304,13 +337,14 @@ export default function AdminProductsPage() {
                 <th className="p-10 font-black text-[#6f6a65]/40 text-[10px] uppercase tracking-[0.3em]">Value</th>
                 <th className="p-10 font-black text-[#6f6a65]/40 text-[10px] uppercase tracking-[0.3em]">Reserve</th>
                 <th className="p-10 font-black text-[#6f6a65]/40 text-[10px] uppercase tracking-[0.3em]">Stature</th>
+                <th className="p-10 font-black text-[#6f6a65]/40 text-[10px] uppercase tracking-[0.3em]">Featured</th>
                 <th className="p-10 font-black text-[#6f6a65]/40 text-[10px] uppercase tracking-[0.3em]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#fcfbf9]">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-32 text-center flex-col items-center">
+                  <td colSpan="6" className="p-32 text-center flex-col items-center">
                     <div className="text-8xl mb-8 opacity-10">🕯️</div>
                     <p className="text-[#6f6a65] font-bold text-xl tracking-tighter italic">The archives are echoingly silent.</p>
                     <p className="text-[#6f6a65]/40 text-xs mt-2 uppercase tracking-widest">Adjust your seeking criteria or add a new manifestation.</p>
@@ -323,7 +357,9 @@ export default function AdminProductsPage() {
                     product={product} 
                     onDelete={handleDelete}
                     onToggleBestseller={handleToggleBestseller}
+                    onToggleFeatured={handleToggleFeatured}
                     isToggling={togglingId === product._id}
+                    isTogglingFeatured={togglingFeaturedId === product._id}
                     confirmDeleteId={confirmDeleteId}
                     onConfirmDelete={(id) => setConfirmDeleteId(id)}
                     onCancelDelete={() => setConfirmDeleteId(null)}

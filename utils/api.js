@@ -68,6 +68,17 @@ export const fetchBestSellers = async () => {
   return apiFetch("/api/products/best");
 };
 
+export const fetchFeaturedProduct = async () => {
+  return apiFetch("/api/products/featured");
+};
+
+export const fetchProductsByCategory = async (category, pageNumber = 1) => {
+  const params = new URLSearchParams();
+  params.append("category", category);
+  params.append("pageNumber", pageNumber);
+  return apiFetch(`/api/products?${params.toString()}`);
+};
+
 // --- AUTH API ---
 
 export const loginUser = async (email, password) => {
@@ -227,7 +238,7 @@ export const uploadImage = async (fileFormData) => {
 // --- CATEGORIES API ---
 
 export const fetchCategories = async () => {
-  return apiFetch("/api/categories");
+  return apiFetch("/api/products/categories");
 };
 
 export const createCategory = async (name) => {
@@ -240,5 +251,61 @@ export const createCategory = async (name) => {
 export const deleteCategory = async (id) => {
   return apiFetch(`/api/categories/${id}`, {
     method: "DELETE",
+  });
+};
+
+// --- COUPONS API ---
+
+export const fetchActiveCoupons = async () => {
+  return apiFetch("/api/coupons");
+};
+
+export const fetchCouponsAdmin = async () => {
+  return apiFetch("/api/coupons/admin");
+};
+
+export const createCouponAPI = async (couponData) => {
+  return apiFetch("/api/coupons", {
+    method: "POST",
+    body: JSON.stringify(couponData),
+  });
+};
+
+export const updateCouponAPI = async (id, couponData) => {
+  return apiFetch(`/api/coupons/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(couponData),
+  });
+};
+
+export const deleteCouponAPI = async (id) => {
+  return apiFetch(`/api/coupons/${id}`, {
+    method: "DELETE",
+  });
+};
+
+// --- WISHLIST API ---
+
+export const getWishlist = async () => {
+  return apiFetch("/api/users/wishlist");
+};
+
+export const addToWishlist = async (productId) => {
+  return apiFetch("/api/users/wishlist", {
+    method: "POST",
+    body: JSON.stringify({ productId }),
+  });
+};
+
+export const removeFromWishlist = async (productId) => {
+  return apiFetch(`/api/users/wishlist/${productId}`, {
+    method: "DELETE",
+  });
+};
+
+export const createProductReview = async (productId, reviewData) => {
+  return apiFetch(`/api/products/${productId}/reviews`, {
+    method: "POST",
+    body: JSON.stringify(reviewData),
   });
 };
